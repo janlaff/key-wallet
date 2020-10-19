@@ -48,7 +48,6 @@ public class MasterPasswordController {
     }
 
     public String getMasterPassword() {
-        // TODO: validate access and prompt for password if necessary
         String userInput = getMasterPasswordFromUser();
 
         if (validateMasterPassword(userInput)) {

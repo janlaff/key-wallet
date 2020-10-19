@@ -2,6 +2,14 @@ package key_wallet.controllers;
 
 import java.util.UUID;
 
+/*
+TODO: create files schema
+ - Stored credentials
+ - Stored Hash of the master password
+ - Determine existing installation
+ - Allow to create new installation
+ */
+
 public class StorageController {
     private static StorageController instance;
     private StorageController() {}
