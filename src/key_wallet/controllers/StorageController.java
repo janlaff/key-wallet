@@ -13,9 +13,8 @@ public class StorageController {
         return instance;
     }
 
-    public boolean saveCredentialToFile(UUID credentialId, String login, String encryptedPassword) {
+    public void saveCredentialToFile(UUID credentialId, String login, String encryptedPassword) {
         // TODO: save to disk
-        return true;
     }
 
     public void removeCredentialFile(UUID credentialId) {
