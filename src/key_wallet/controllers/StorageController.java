@@ -8,6 +8,8 @@ TODO: create files schema
  - Stored Hash of the master password
  - Determine existing installation
  - Allow to create new installation
+
+ NEW IDEA: Use database to store encrypted credentials and hash of master password
  */
 
 public class StorageController {
