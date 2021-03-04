@@ -1,6 +1,6 @@
 package key_wallet.crypto;
 
-public class SymmetricXorEncryption implements Encryption {
+public class XorEncryption implements Encryption {
     @Override
     public byte[] cipher(byte[] data, byte[] key) {
         int keyIdx = 0;
