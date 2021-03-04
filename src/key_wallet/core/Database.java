@@ -39,6 +39,10 @@ public class Database {
         Files.write(dataFile.toPath(), contents);
     }
 
+    public List<Credential> getCredentials() {
+        return credentials;
+    }
+
     public void addCredential(Credential credential) {
         credentials.add(credential);
     }
