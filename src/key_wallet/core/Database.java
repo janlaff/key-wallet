@@ -1,6 +1,5 @@
 package key_wallet.core;
 
-import key_wallet.core.Masterpassword;
 import key_wallet.data.Credential;
 
 import java.io.BufferedReader;
@@ -13,24 +12,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
-    // Start -> MPasswort -> Account listen google, web, usernames
-    // Account auswählen -> MPasswort -> Passwort kopieren, editieren, anzeigen
+    public static final String DB_HEADER_LINE = "V1.0-key-wallet\n";
+    private final List<Credential> credentials;
 
-    private List<Credential> credentials;
-
-    public Database(File dataFile, Masterpassword mp) throws IOException {
+    public Database(File dataFile, MasterPassword mp) throws IOException, MasterPasswordException {
         credentials = new ArrayList<>();
 
         if (Files.exists(dataFile.toPath())) {
             byte[] contents = Files.readAllBytes(dataFile.toPath());
             String decrypted = mp.decrypt(contents);
+
+            if (!validateFileHeader(decrypted)) {
+                throw new MasterPasswordException();
+            } else {
+                decrypted = decrypted.substring(DB_HEADER_LINE.length());
+            }
+
             deserializeCredentials(decrypted);
         } else {
             System.err.println("[WARNING]: Specified file does not exist yet");
         }
     }
 
-    public void saveToFile(File dataFile, Masterpassword mp) throws IOException {
+    public void saveToFile(File dataFile, MasterPassword mp) throws IOException {
         byte[] contents = mp.encrypt(serializeCredentials());
         Files.write(dataFile.toPath(), contents);
     }
@@ -49,7 +53,7 @@ public class Database {
 
     private void deserializeCredentials(String csv) throws IOException {
         BufferedReader reader = new BufferedReader(new StringReader(csv));
-        String line = null;
+        String line;
 
         while((line = reader.readLine()) != null )
         {
@@ -62,10 +66,21 @@ public class Database {
     }
 
     private String serializeCredentials() {
-        StringBuilder output = new StringBuilder();
+        StringBuilder output = new StringBuilder(DB_HEADER_LINE);
         for (Credential c : credentials) {
             output.append(CredentialSerializer.serialize(c));
         }
         return output.toString();
+    }
+
+    private boolean validateFileHeader(String decryptedFile) {
+        BufferedReader reader = new BufferedReader(new StringReader(decryptedFile));
+
+        try {
+            String line = reader.readLine();
+            return line != null && (line + "\n").equals(DB_HEADER_LINE);
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
