@@ -15,7 +15,7 @@ public class Database {
     public static final String DB_HEADER_LINE = "V1.0-key-wallet\n";
     private final List<Credential> credentials;
 
-    public Database(File dataFile, MasterPassword mp) throws IOException, MasterPasswordException {
+    public Database(File dataFile, MasterPassword mp) throws IOException, MasterPasswordException, ParseException {
         credentials = new ArrayList<>();
 
         if (Files.exists(dataFile.toPath())) {
@@ -30,7 +30,7 @@ public class Database {
 
             deserializeCredentials(decrypted);
         } else {
-            System.err.println("[WARNING]: Specified file does not exist yet");
+            System.err.println("[WARNING]: Creating new database file");
         }
     }
 
@@ -55,17 +55,13 @@ public class Database {
         credentials.set(index, credential);
     }
 
-    private void deserializeCredentials(String csv) throws IOException {
+    private void deserializeCredentials(String csv) throws IOException, ParseException {
         BufferedReader reader = new BufferedReader(new StringReader(csv));
         String line;
 
-        while((line = reader.readLine()) != null )
+        while ((line = reader.readLine()) != null)
         {
-            try {
-                credentials.add(CredentialSerializer.deserialize(line));
-            } catch (ParseException e) {
-                System.err.println("[WARNING]: Ignoring invalid credential");
-            }
+            credentials.add(CredentialSerializer.deserialize(line));
         }
     }
 

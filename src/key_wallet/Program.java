@@ -18,8 +18,8 @@ public class Program {
         Database db = null;
         try {
             db = new Database(dataFile, mp);
-        } catch (MasterPasswordException e) {
-            System.err.println("Master password could not be validated");
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
         }
 
         for (Credential c : db.getCredentials()) {

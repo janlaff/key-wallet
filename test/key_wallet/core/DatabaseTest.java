@@ -7,10 +7,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 
 public class DatabaseTest {
     @Test(expected = MasterPasswordException.class)
-    public void invalidMasterPasswordTest() throws IOException, MasterPasswordException {
+    public void invalidMasterPasswordTest() throws IOException, MasterPasswordException, ParseException {
         MasterPassword mp = new MasterPassword("123", new PlaintextEncryption());
         // Write some random shit
         BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"));
