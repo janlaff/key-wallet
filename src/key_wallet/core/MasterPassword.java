@@ -8,7 +8,12 @@ public class MasterPassword {
     private final byte[] password;
     private final Encryption encryption;
 
-    public MasterPassword(String password, Encryption encryption) {
+    public MasterPassword(String password, Encryption encryption) throws MasterPasswordException {
+        // TODO: check for good password
+        if (password.length() == 0) {
+            throw new MasterPasswordException("Password is too short");
+        }
+
         this.encryption = encryption;
         this.password = password.getBytes(StandardCharsets.UTF_8);
     }

@@ -11,9 +11,9 @@ import java.io.File;
 import java.io.IOException;
 
 public class Program {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, MasterPasswordException {
         File dataFile = new File("secret_password_for_my_phub");
-        MasterPassword mp = new MasterPassword("kjblkasdfjnlkjnsdaflkjnasdlkjfnlksdajnflkjsdanflkjnsadflkjndsa", new XorEncryption());
+        MasterPassword mp = new MasterPassword("abc123", new XorEncryption());
 
         Database db = null;
         try {

@@ -23,7 +23,7 @@ public class Database {
             String decrypted = mp.decrypt(contents);
 
             if (!validateFileHeader(decrypted)) {
-                throw new MasterPasswordException();
+                throw new MasterPasswordException("Password is incorrect!");
             } else {
                 decrypted = decrypted.substring(DB_HEADER_LINE.length());
             }
