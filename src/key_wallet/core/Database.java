@@ -1,12 +1,14 @@
-package key_wallet.db;
+package key_wallet.core;
 
 import key_wallet.core.Masterpassword;
+import key_wallet.data.Credential;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,24 +53,19 @@ public class Database {
 
         while((line = reader.readLine()) != null )
         {
-            String[] parts = line.split(",");
-
-            if (parts.length != 3) {
-                System.err.println("[WARNING]: Ignoring invalid credentials: " + line);
-            } else {
-                Credential credential = new Credential(parts[0], parts[1], parts[2]);
-                credentials.add(credential);
+            try {
+                credentials.add(CredentialSerializer.deserialize(line));
+            } catch (ParseException e) {
+                System.err.println("[WARNING]: Ignoring invalid credential");
             }
         }
     }
 
     private String serializeCredentials() {
-        String output = "";
-
+        StringBuilder output = new StringBuilder();
         for (Credential c : credentials) {
-            output += c.description + "," + c.username + "," + c.password + "\n";
+            output.append(CredentialSerializer.serialize(c));
         }
-
-        return output;
+        return output.toString();
     }
 }

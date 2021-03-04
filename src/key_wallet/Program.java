@@ -1,8 +1,8 @@
 package key_wallet;
 
 import key_wallet.core.Masterpassword;
-import key_wallet.db.Credential;
-import key_wallet.db.Database;
+import key_wallet.data.Credential;
+import key_wallet.core.Database;
 
 import java.io.File;
 import java.io.IOException;

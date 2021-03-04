@@ -1,4 +1,4 @@
-package key_wallet.db;
+package key_wallet.data;
 
 public class Credential {
     public String description;
