@@ -9,11 +9,7 @@ public class MasterPassword {
     private final Encryption encryption;
 
     public MasterPassword(String password, Encryption encryption) throws MasterPasswordException {
-        // TODO: check for good password
-        if (password.length() == 0) {
-            throw new MasterPasswordException("Password is too short");
-        }
-
+        validatePassword(password);
         this.encryption = encryption;
         this.password = password.getBytes(StandardCharsets.UTF_8);
     }
@@ -25,5 +21,26 @@ public class MasterPassword {
     public byte[] encrypt(String data) {
         byte[] strBytes = data.getBytes(StandardCharsets.UTF_8);
         return encryption.cipher(strBytes, password);
+    }
+
+    private void validatePassword(String password) throws MasterPasswordException {
+        if (password.length() < 8) {
+            throw new MasterPasswordException("Password needs to be at least 8 characters long!");
+        }
+
+        // Check if password contains digit
+        if (!password.matches("(?=.*[0-9]).*")) {
+            throw new MasterPasswordException("Password needs to contain at least one digit!");
+        }
+
+        // Check if password contains letter
+        if (!password.matches("(?=.*[a-zA-Z]).*")) {
+            throw new MasterPasswordException("Password needs to contain at least one letter!");
+        }
+
+        // Maybe also add the need for special characters
+        // if (!password.matches("(?=.*[~!@#$%^&*()_-]).*")) {
+        //     throw new MasterPasswordException("Password needs to contain at least one special character!");
+        // }
     }
 }

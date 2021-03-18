@@ -2,7 +2,6 @@ package key_wallet.core;
 
 import key_wallet.crypto.PlaintextEncryption;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class MasterPasswordTest {
@@ -13,7 +12,7 @@ public class MasterPasswordTest {
 
     @Test
     public void encryptAndDecryptTest() throws MasterPasswordException {
-        MasterPassword mp = new MasterPassword("ichtrinkenurbier", new PlaintextEncryption());
+        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new PlaintextEncryption());
         String randomData = "Fischers Fritz";
         byte[] encryptedData = mp.encrypt(randomData);
         String result = mp.decrypt(encryptedData);
@@ -21,9 +20,49 @@ public class MasterPasswordTest {
         Assert.assertEquals(randomData, result);
     }
 
-    @Ignore
     @Test(expected = MasterPasswordException.class)
-    public void weakPasswordTest() {
-        // TODO
+    public void passwordEmptyTest() throws MasterPasswordException {
+        new MasterPassword("", new PlaintextEncryption());
+    }
+
+    @Test(expected = MasterPasswordException.class)
+    public void passwordTooShortTest() throws MasterPasswordException {
+        new MasterPassword("Ab124", new PlaintextEncryption());
+    }
+
+    @Test(expected = MasterPasswordException.class)
+    public void passwordOnlyNumbersTest() throws MasterPasswordException {
+        new MasterPassword("12345678", new PlaintextEncryption());
+    }
+
+    @Test(expected = MasterPasswordException.class)
+    public void passwordOnlyLettersTest() throws MasterPasswordException {
+        new MasterPassword("ABCDEFG", new PlaintextEncryption());
+    }
+
+    @Test(expected = MasterPasswordException.class)
+    public void passwordOnlySymbolsTest() throws MasterPasswordException {
+        new MasterPassword("!§$%&/()=", new PlaintextEncryption());
+    }
+
+    @Test
+    public void passwordCorrectTest() throws MasterPasswordException {
+        String[] goodPasswords = new String[] {
+                "1Ki77zyu",
+                ".Susan53",
+                "jelly22fi$h",
+                "$m3llycat",
+                "a11Black$",
+                "!ush3rss",
+                "&ebay.44",
+                "d3ltagamm@",
+                "!Lov3MyPiano",
+                "SterlingGmail20.15",
+                "BankLogin!3"
+        };
+
+        for (String pw : goodPasswords) {
+            new MasterPassword(pw, new PlaintextEncryption());
+        }
     }
 }
