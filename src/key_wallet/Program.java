@@ -13,7 +13,7 @@ import java.io.IOException;
 public class Program {
     public static void main(String[] args) throws IOException, MasterPasswordException {
         File dataFile = new File("secret_password_for_my_phub");
-        MasterPassword mp = new MasterPassword("abc123", new XorEncryption());
+        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new XorEncryption());
 
         Database db = null;
         try {
@@ -22,6 +22,8 @@ public class Program {
             System.err.println(e.getMessage());
         }
 
+        System.out.println("Current contents:");
+
         for (Credential c : db.getCredentials()) {
             System.out.println("Desc:" + c.description);
             System.out.println("Username:" + c.username);
@@ -29,7 +31,9 @@ public class Program {
             System.out.println();
         }
 
+        System.out.println("Adding credential...");
         db.addCredential(new Credential("web.de", "peter", "abc"));
+        System.out.println("Saving...");
         db.saveToFile(dataFile, mp);
     }
 }
