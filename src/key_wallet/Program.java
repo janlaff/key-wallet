@@ -2,6 +2,7 @@ package key_wallet;
 
 import key_wallet.core.MasterPassword;
 import key_wallet.core.MasterPasswordException;
+import key_wallet.crypto.AESEncryption;
 import key_wallet.crypto.XorEncryption;
 import key_wallet.data.Credential;
 import key_wallet.core.Database;
@@ -12,8 +13,8 @@ import java.io.IOException;
 
 public class Program {
     public static void main(String[] args) throws IOException, MasterPasswordException {
-        File dataFile = new File("secret_password_for_my_phub");
-        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new XorEncryption());
+        File dataFile = new File("secret.kw");
+        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         Database db = null;
         try {

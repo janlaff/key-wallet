@@ -11,7 +11,7 @@ public class PlaintextEncryptionTest {
 
         byte[] randomData = new byte[] { 0x00, 0x52, 0x23, 0x55 };
         byte[] randomKey = new byte[] { 0x01, 0x02, 0x03, 0x04 };
-        byte[] result = pe.cipher(randomData, randomKey);
+        byte[] result = pe.encrypt(randomData, randomKey);
 
         Assert.assertArrayEquals(randomData, result);
     }

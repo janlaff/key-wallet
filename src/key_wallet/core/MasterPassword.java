@@ -15,12 +15,12 @@ public class MasterPassword {
     }
 
     public String decrypt(byte[] data) {
-        return new String(encryption.cipher(data, password), StandardCharsets.UTF_8);
+        return new String(encryption.decrypt(data, password), StandardCharsets.UTF_8);
     }
 
     public byte[] encrypt(String data) {
         byte[] strBytes = data.getBytes(StandardCharsets.UTF_8);
-        return encryption.cipher(strBytes, password);
+        return encryption.encrypt(strBytes, password);
     }
 
     private void validatePassword(String password) throws MasterPasswordException {
