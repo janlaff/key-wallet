@@ -13,11 +13,9 @@ import java.util.List;
 
 public class Database {
     public static final String DB_HEADER_LINE = "V1.0-key-wallet\n";
-    private final List<Credential> credentials;
+    private final List<Credential> credentials = new ArrayList<>();
 
     public Database(File dataFile, MasterPassword mp) throws IOException, MasterPasswordException, ParseException {
-        credentials = new ArrayList<>();
-
         if (Files.exists(dataFile.toPath())) {
             byte[] contents = Files.readAllBytes(dataFile.toPath());
             String decrypted = mp.decrypt(contents);
