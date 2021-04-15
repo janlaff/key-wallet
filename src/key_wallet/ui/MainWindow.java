@@ -1,5 +1,6 @@
 package key_wallet.ui;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.sun.tools.javac.Main;
 import key_wallet.core.Database;
@@ -46,12 +47,12 @@ public class MainWindow extends JFrame {
 
     public static void main(String[] args) throws MasterPasswordException {
         try {
-            UIManager.setLookAndFeel( new FlatLightLaf() );
+            UIManager.setLookAndFeel( new FlatDarkLaf() );
         } catch( Exception ex ) {
             System.err.println( "Failed to initialize LaF" );
         }
 
-        // Round input corners
+        /*// Round input corners
         UIManager.put( "TextComponent.arc", 5 );
         // Better focus
         UIManager.put( "Component.focusWidth", 1 );
@@ -59,7 +60,7 @@ public class MainWindow extends JFrame {
         UIManager.put( "ScrollBar.thumbArc", 999 );
         UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
         //
-        UIManager.put( "Component.arrowType", "triangle" );
+        UIManager.put( "Component.arrowType", "triangle" );*/
 
         // Get password file
         JFileChooser chooser = new JFileChooser("./");
