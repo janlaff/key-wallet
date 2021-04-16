@@ -1,13 +1,10 @@
 package key_wallet;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import key_wallet.core.Config;
-import key_wallet.core.MasterPassword;
-import key_wallet.core.MasterPasswordException;
+import key_wallet.core.*;
 import key_wallet.crypto.AESEncryption;
 import key_wallet.crypto.XorEncryption;
 import key_wallet.data.Credential;
-import key_wallet.core.Database;
 import key_wallet.ui.MainWindow;
 
 
@@ -33,7 +30,13 @@ public class Program {
         UIManager.put( "ScrollBar.thumbArc", 999 );
         UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
 
-        File dataFile = Config.getDatabaseFile();
+        File dataFile = null;
+        try {
+            dataFile = Config.getDatabaseFile();
+        } catch (ConfigException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+            return;
+        }
 
         // Get password
         JPanel panel = new JPanel();
@@ -57,7 +60,7 @@ public class Program {
 
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    new MainWindow(db.getCredentials());
+                    new MainWindow(db);
                 }
             });
         } catch (MasterPasswordException | ParseException e) {

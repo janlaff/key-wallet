@@ -9,6 +9,7 @@ import key_wallet.crypto.AESEncryption;
 import key_wallet.data.Credential;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -18,11 +19,11 @@ public class MainWindow extends JFrame {
     private CredentialSelectPanel selectPanel;
     private CredentialInfoPanel infoPanel;
 
-    public MainWindow(List<Credential> credentials) {
+    public MainWindow(Database db) {
         super("key-wallet");
 
         infoPanel = new CredentialInfoPanel();
-        selectPanel = new CredentialSelectPanel(infoPanel, credentials);
+        selectPanel = new CredentialSelectPanel(infoPanel, db);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -32,7 +33,13 @@ public class MainWindow extends JFrame {
         splitPane.setRightComponent(infoPanel);
         splitPane.setDividerLocation(250);
         splitPane.setOneTouchExpandable(true);
-        setContentPane(splitPane);
+
+        JPanel listSpacer = new JPanel();
+        listSpacer.setLayout(new BorderLayout());
+        listSpacer.setBorder(new EmptyBorder(10, 10, 10, 10));
+        listSpacer.add(splitPane);
+
+        setContentPane(listSpacer);
 
         setVisible(true);
     }

@@ -3,6 +3,7 @@ package key_wallet.ui;
 import key_wallet.data.Credential;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class CredentialInfoPanel extends JPanel {
     private final JLabel usernameLbl;
@@ -13,6 +14,8 @@ public class CredentialInfoPanel extends JPanel {
         usernameLbl = new JLabel();
         descriptionLbl = new JLabel();
         passwordLbl = new JLabel();
+
+        //setLayout(new BorderLayout());
 
         add(usernameLbl);
         add(descriptionLbl);
