@@ -53,6 +53,11 @@ public class Database {
         credentials.set(index, credential);
     }
 
+    @Deprecated(since = "This method is intended for testing only")
+    public void clearCredentials() {
+        credentials.clear();
+    }
+
     private void deserializeCredentials(String csv) throws IOException, ParseException {
         BufferedReader reader = new BufferedReader(new StringReader(csv));
         String line;
