@@ -3,9 +3,6 @@ package key_wallet;
 import com.formdev.flatlaf.FlatDarkLaf;
 import key_wallet.core.*;
 import key_wallet.crypto.AESEncryption;
-import key_wallet.crypto.XorEncryption;
-import key_wallet.data.Credential;
-import key_wallet.ui.AppWindow;
 import key_wallet.ui.MainWindow;
 
 
@@ -62,7 +59,7 @@ public class Program {
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
                     //new MainWindow(db);
-                    AppWindow content = new AppWindow(db);
+                    MainWindow content = new MainWindow(db);
                     JFrame frame = new JFrame("key-wallet");
                     frame.setContentPane(content.$$$getRootComponent$$$());
                     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
