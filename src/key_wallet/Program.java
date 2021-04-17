@@ -1,6 +1,7 @@
 package key_wallet;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import key_wallet.core.*;
 import key_wallet.crypto.AESEncryption;
 import key_wallet.ui.MainWindow;
@@ -15,7 +16,7 @@ import java.text.ParseException;
 public class Program {
     public static void main(String[] args) throws IOException, MasterPasswordException {
         try {
-            UIManager.setLookAndFeel( new FlatDarkLaf() );
+            UIManager.setLookAndFeel( new FlatLightLaf() );
         } catch( Exception ex ) {
             System.err.println( "Failed to initialize LaF" );
         }
