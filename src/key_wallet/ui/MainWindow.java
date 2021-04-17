@@ -34,12 +34,12 @@ public class MainWindow extends JFrame {
         splitPane.setDividerLocation(250);
         splitPane.setOneTouchExpandable(true);
 
-        JPanel listSpacer = new JPanel();
-        listSpacer.setLayout(new BorderLayout());
-        listSpacer.setBorder(new EmptyBorder(10, 10, 10, 10));
-        listSpacer.add(splitPane);
+        JPanel spacer = new JPanel();
+        spacer.setLayout(new BorderLayout());
+        spacer.setBorder(new EmptyBorder(10, 10, 10, 10));
+        spacer.add(splitPane);
 
-        setContentPane(listSpacer);
+        setContentPane(spacer);
 
         setVisible(true);
     }

@@ -5,6 +5,7 @@ import key_wallet.core.*;
 import key_wallet.crypto.AESEncryption;
 import key_wallet.crypto.XorEncryption;
 import key_wallet.data.Credential;
+import key_wallet.ui.AppWindow;
 import key_wallet.ui.MainWindow;
 
 
@@ -45,7 +46,7 @@ public class Program {
         panel.add(label);
         panel.add(pass);
         String[] options = new String[]{"OK", "Cancel"};
-        int option = JOptionPane.showOptionDialog(null, panel, "The title",
+        int option = JOptionPane.showOptionDialog(null, panel, "Master Password",
                 JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[0]);
 
@@ -60,7 +61,13 @@ public class Program {
 
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    new MainWindow(db);
+                    //new MainWindow(db);
+                    AppWindow content = new AppWindow(db);
+                    JFrame frame = new JFrame("key-wallet");
+                    frame.setContentPane(content.$$$getRootComponent$$$());
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    frame.setSize(800, 600);
+                    frame.setVisible(true);
                 }
             });
         } catch (MasterPasswordException | ParseException e) {

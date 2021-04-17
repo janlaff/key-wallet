@@ -29,6 +29,6 @@ public class GenerateCredentials {
         db.addCredential(new Credential("GMAIL Account", "max.mustermann@gmail.com", "m@xThaGangs1a"));
         db.addCredential(new Credential("Moodle Account", "max.mustermann@student.dhbw-karlsruhe.de", "m@xThaGangs1a"));
 
-        db.saveToFile(dataFile, mp);
+        db.update();
     }
 }

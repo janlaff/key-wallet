@@ -14,8 +14,13 @@ import java.util.List;
 public class Database {
     public static final String DB_HEADER_LINE = "V1.0-key-wallet\n";
     private final List<Credential> credentials = new ArrayList<>();
+    private final MasterPassword mp;
+    private final File dataFile;
 
     public Database(File dataFile, MasterPassword mp) throws IOException, MasterPasswordException, ParseException {
+        this.dataFile = dataFile;
+        this.mp = mp;
+
         if (Files.exists(dataFile.toPath())) {
             byte[] contents = Files.readAllBytes(dataFile.toPath());
             String decrypted = mp.decrypt(contents);
@@ -32,11 +37,6 @@ public class Database {
         }
     }
 
-    public void saveToFile(File dataFile, MasterPassword mp) throws IOException {
-        byte[] contents = mp.encrypt(serializeCredentials());
-        Files.write(dataFile.toPath(), contents);
-    }
-
     public List<Credential> getCredentials() {
         return credentials;
     }
@@ -51,6 +51,15 @@ public class Database {
 
     public void updateCredential(int index, Credential credential) {
         credentials.set(index, credential);
+    }
+
+    public File getFile() {
+        return dataFile;
+    }
+
+    public void update() throws IOException {
+        byte[] contents = mp.encrypt(serializeCredentials());
+        Files.write(dataFile.toPath(), contents);
     }
 
     @Deprecated(since = "This method is intended for testing only")
