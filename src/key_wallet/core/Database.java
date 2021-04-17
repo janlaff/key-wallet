@@ -67,6 +67,16 @@ public class Database {
         credentials.clear();
     }
 
+    public List<String> getCategories() {
+        List<String> categories = new ArrayList<>();
+        for (Credential c : credentials) {
+            if (!categories.contains(c.category)) {
+                categories.add(c.category);
+            }
+        }
+        return categories;
+    }
+
     private void deserializeCredentials(String csv) throws IOException, ParseException {
         BufferedReader reader = new BufferedReader(new StringReader(csv));
         String line;

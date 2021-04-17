@@ -32,6 +32,7 @@ public class MainWindow {
     private JButton showButton;
     private JButton searchButton;
     private JLabel databaseLabel;
+    private JComboBox categoryComboBox;
     private UiState state;
 
     enum UiState {
@@ -41,8 +42,6 @@ public class MainWindow {
     }
 
     public MainWindow(Database db) {
-        state = UiState.DISPLAY_CREDENTIAL;
-
         DefaultListModel<Credential> listModel = new DefaultListModel<>();
         List<Credential> credentials = db.getCredentials();
         listModel.addAll(credentials);
@@ -55,10 +54,15 @@ public class MainWindow {
             }
         });
 
+        DefaultComboBoxModel<String> comboModel = new DefaultComboBoxModel<>();
+        List<String> categories = db.getCategories();
+        comboModel.addAll(categories);
+        categoryComboBox.setModel(comboModel);
+
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                listModel.addElement(new Credential("( New Account )", "", ""));
+                listModel.addElement(new Credential("( New Account )", "", "", ""));
                 list1.setSelectedIndex(listModel.getSize() - 1);
                 descriptionField.setText("");
 
@@ -75,7 +79,12 @@ public class MainWindow {
                     c.description = descriptionField.getText();
                     c.username = usernameField.getText();
                     c.password = new String(passwordField.getPassword());
+                    c.category = (String) categoryComboBox.getSelectedItem();
                     listModel.set(list1.getSelectedIndex(), c);
+
+                    if (!categories.contains(c.category)) {
+                        comboModel.addElement(c.category);
+                    }
 
                     if (state == UiState.CREATE_CREDENTIAL) {
                         db.addCredential(c);
@@ -126,10 +135,12 @@ public class MainWindow {
                         descriptionField.setText("");
                         usernameField.setText("");
                         passwordField.setText("");
+                        categoryComboBox.setSelectedItem("");
                     } else {
                         descriptionField.setText(c.description);
                         usernameField.setText(c.username);
                         passwordField.setText(c.password);
+                        categoryComboBox.setSelectedItem(c.category);
                     }
                 }
             }
@@ -170,6 +181,8 @@ public class MainWindow {
         if (list1.getModel().getSize() != 0) {
             list1.setSelectedIndex(0);
         }
+
+        enterUiState(UiState.DISPLAY_CREDENTIAL);
     }
 
     private void copyToClipboard(String value) {
@@ -191,11 +204,13 @@ public class MainWindow {
                 usernameField.setEditable(true);
                 passwordField.setEditable(true);
                 passwordField.setEchoChar((char) 0);
+                categoryComboBox.setEditable(true);
                 // Disabled widgets
                 addButton.setEnabled(false);
                 searchButton.setEnabled(false);
                 searchTextField.setEnabled(false);
                 list1.setEnabled(false);
+                categoryComboBox.setEnabled(true);
                 // Focus
                 descriptionField.requestFocus();
                 break;
@@ -209,12 +224,14 @@ public class MainWindow {
                 usernameField.setEditable(false);
                 passwordField.setEditable(false);
                 passwordField.setEchoChar('•');
+                categoryComboBox.setEditable(false);
                 // Disabled widgets
                 addButton.setEnabled(true);
                 deleteButton.setEnabled(true);
                 searchButton.setEnabled(true);
                 searchTextField.setEnabled(true);
                 list1.setEnabled(true);
+                categoryComboBox.setEnabled(false);
                 // Focus
                 searchTextField.requestFocus();
                 break;
@@ -227,12 +244,14 @@ public class MainWindow {
                 usernameField.setEditable(true);
                 passwordField.setEditable(true);
                 passwordField.setEchoChar((char) 0);
+                categoryComboBox.setEditable(true);
                 // Disabled widgets
                 list1.setEnabled(false);
                 searchButton.setEnabled(false);
                 searchTextField.setEnabled(false);
                 addButton.setEnabled(false);
                 deleteButton.setEnabled(false);
+                categoryComboBox.setEnabled(true);
                 // Focus
                 descriptionField.requestFocus();
                 break;
@@ -268,7 +287,7 @@ public class MainWindow {
         addButton.setText("Add");
         panel1.add(addButton, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel2.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel2, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("Username");
@@ -300,6 +319,11 @@ public class MainWindow {
         showButton = new JButton();
         showButton.setText("Show");
         panel3.add(showButton, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label4 = new JLabel();
+        label4.setText("Category");
+        panel2.add(label4, new com.intellij.uiDesigner.core.GridConstraints(6, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        categoryComboBox = new JComboBox();
+        panel2.add(categoryComboBox, new com.intellij.uiDesigner.core.GridConstraints(7, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel4, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_EAST, com.intellij.uiDesigner.core.GridConstraints.FILL_VERTICAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
