@@ -119,6 +119,13 @@ public class MainWindow {
             if (state == UiState.CREATE_CREDENTIAL) {
                 if (listModel.getSize() > 0) {
                     credentialInfoList.setSelectedIndex(0);
+                } else {
+                    nameField.setText("");
+                    loginField.setText("");
+                    emailField.setText("");
+                    passwordField.setText("");
+                    websiteField.setText("");
+                    categoryComboBox.setSelectedItem("");
                 }
 
                 enterUiState(UiState.DISPLAY_CREDENTIAL);
@@ -126,12 +133,12 @@ public class MainWindow {
                 int index = credentialInfoList.getSelectedIndex();
                 Credential c = db.getCredential(index);
 
-                c.name = nameField.getText();
-                c.login = loginField.getText();
-                c.email = emailField.getText();
-                c.password = new String(passwordField.getPassword());
-                c.website = websiteField.getText();
-                c.category = (String) categoryComboBox.getSelectedItem();
+                nameField.setText(c.name);
+                loginField.setText(c.login);
+                emailField.setText(c.email);
+                passwordField.setText(c.password);
+                websiteField.setText(c.website);
+                categoryComboBox.setSelectedItem(c.category);
                 listModel.set(credentialInfoList.getSelectedIndex(), c.name);
 
                 enterUiState(UiState.DISPLAY_CREDENTIAL);
@@ -141,6 +148,13 @@ public class MainWindow {
 
                 if (listModel.getSize() > 0) {
                     credentialInfoList.setSelectedIndex(max(idx - 1, 0));
+                } else {
+                    nameField.setText("");
+                    loginField.setText("");
+                    emailField.setText("");
+                    passwordField.setText("");
+                    websiteField.setText("");
+                    categoryComboBox.setSelectedItem("");
                 }
 
                 db.removeCredential(idx);
@@ -150,6 +164,8 @@ public class MainWindow {
                 } catch (IOException ioException) {
                     JOptionPane.showMessageDialog(mainPanel, "Failed to save changes!");
                 }
+
+                enterUiState(UiState.DISPLAY_CREDENTIAL);
             }
         });
         credentialInfoList.addListSelectionListener(e -> {
@@ -232,6 +248,8 @@ public class MainWindow {
                 searchTextField.setEnabled(false);
                 credentialInfoList.setEnabled(false);
                 categoryComboBox.setEnabled(true);
+                editButton.setEnabled(true);
+                deleteButton.setEnabled(true);
                 // Focus
                 nameField.requestFocus();
                 credentialInfoList.clearSelection();
@@ -248,19 +266,26 @@ public class MainWindow {
                 passwordField.setEchoChar('•');
                 websiteField.setEditable(false);
                 categoryComboBox.setEditable(false);
+                categoryComboBox.setEnabled(false);
                 // Disabled widgets
                 addButton.setEnabled(true);
-                deleteButton.setEnabled(true);
-                searchButton.setEnabled(true);
-                searchTextField.setEnabled(true);
-                credentialInfoList.setEnabled(true);
-                categoryComboBox.setEnabled(false);
-                // Focus
-                searchTextField.requestFocus();
+
+                boolean enableUi = credentialInfoList.getModel().getSize() != 0;
+                editButton.setEnabled(enableUi);
+                deleteButton.setEnabled(enableUi);
+                copyEmailButton.setEnabled(enableUi);
+                copyLoginButton.setEnabled(enableUi);
+                copyPasswordButton.setEnabled(enableUi);
+                showPasswordButton.setEnabled(enableUi);
+                openButton.setEnabled(enableUi);
+                searchButton.setEnabled(enableUi);
+                searchTextField.setEnabled(enableUi);
+                credentialInfoList.setEnabled(enableUi);
             }
             case EDIT_CREDENTIAL -> {
                 // Button texts
                 editButton.setText("Save");
+                deleteButton.setText("Cancel");
                 // Edit fields
                 nameField.setEditable(true);
                 loginField.setEditable(true);
@@ -274,8 +299,13 @@ public class MainWindow {
                 searchButton.setEnabled(false);
                 searchTextField.setEnabled(false);
                 addButton.setEnabled(false);
-                deleteButton.setEnabled(false);
+                deleteButton.setEnabled(true);
                 categoryComboBox.setEnabled(true);
+                copyEmailButton.setEnabled(false);
+                copyLoginButton.setEnabled(false);
+                copyPasswordButton.setEnabled(false);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
                 // Focus
                 nameField.requestFocus();
             }
