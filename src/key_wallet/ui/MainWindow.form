@@ -47,7 +47,7 @@
               <text value="Username"/>
             </properties>
           </component>
-          <component id="f2bae" class="javax.swing.JTextField" binding="textField2" default-binding="true">
+          <component id="f2bae" class="javax.swing.JTextField" binding="usernameField">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -65,7 +65,7 @@
               <text value="Password"/>
             </properties>
           </component>
-          <component id="53677" class="javax.swing.JPasswordField" binding="passwordField1" default-binding="true">
+          <component id="53677" class="javax.swing.JPasswordField" binding="passwordField">
             <constraints>
               <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
@@ -83,7 +83,7 @@
               <text value="Account Name"/>
             </properties>
           </component>
-          <component id="aaa62" class="javax.swing.JTextField" binding="textField3" default-binding="true">
+          <component id="aaa62" class="javax.swing.JTextField" binding="descriptionField">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>

@@ -24,9 +24,9 @@ public class MainWindow {
     private JButton addButton;
     private JButton editButton;
     private JButton deleteButton;
-    private JTextField textField2;
-    private JPasswordField passwordField1;
-    private JTextField textField3;
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JTextField descriptionField;
     private JButton copyButton;
     private JButton copyButton2;
     private JButton showButton;
@@ -49,13 +49,81 @@ public class MainWindow {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                editButton.setText("Create");
+                deleteButton.setText("Cancel");
+                listModel.addElement(new Credential("( New Account )", "", ""));
+                list1.setSelectedIndex(listModel.getSize() - 1);
 
+                descriptionField.setText("");
+                descriptionField.setEditable(true);
+                usernameField.setEditable(true);
+                passwordField.setEditable(true);
+                passwordField.setEchoChar((char) 0);
+                addButton.setEnabled(false);
+                searchButton.setEnabled(false);
+                list1.setEnabled(false);
             }
         });
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (editButton.getText().equals("Edit")) {
+                    editButton.setText("Save");
+                    descriptionField.setEditable(true);
+                    usernameField.setEditable(true);
+                    passwordField.setEditable(true);
+                    list1.setEnabled(false);
+                    searchButton.setEnabled(false);
+                    addButton.setEnabled(false);
+                    deleteButton.setEnabled(false);
+                } else if (editButton.getText().equals("Save")) {
+                    Credential c = (Credential) list1.getSelectedValue();
+                    c.description = descriptionField.getText();
+                    c.username = usernameField.getText();
+                    c.password = new String(passwordField.getPassword());
+                    listModel.set(list1.getSelectedIndex(), c);
 
+                    db.updateCredential(list1.getSelectedIndex(), c);
+
+                    try {
+                        db.update();
+                    } catch (IOException ioException) {
+                        JOptionPane.showMessageDialog(panel1, "Failed to save changes");
+                    }
+
+                    editButton.setText("Edit");
+                    descriptionField.setEditable(false);
+                    usernameField.setEditable(false);
+                    passwordField.setEditable(false);
+                    list1.setEnabled(true);
+                    searchButton.setEnabled(true);
+                    addButton.setEnabled(true);
+                    deleteButton.setEnabled(true);
+                } else {
+                    Credential c = (Credential) list1.getSelectedValue();
+                    c.description = descriptionField.getText();
+                    c.username = usernameField.getText();
+                    c.password = new String(passwordField.getPassword());
+                    listModel.set(list1.getSelectedIndex(), c);
+
+                    db.addCredential(c);
+
+                    try {
+                        db.update();
+                    } catch (IOException ioException) {
+                        JOptionPane.showMessageDialog(panel1, "Failed to save changes");
+                    }
+
+                    editButton.setText("Edit");
+                    deleteButton.setText("Delete");
+                    descriptionField.setEditable(false);
+                    usernameField.setEditable(false);
+                    passwordField.setEditable(false);
+                    list1.setEnabled(true);
+                    searchButton.setEnabled(true);
+                    addButton.setEnabled(true);
+                    deleteButton.setEnabled(true);
+                }
             }
         });
         deleteButton.addActionListener(new ActionListener() {
@@ -63,16 +131,28 @@ public class MainWindow {
             public void actionPerformed(ActionEvent e) {
                 int idx = list1.getSelectedIndex();
                 listModel.remove(idx);
-                db.removeCredential(idx);
+
+                if (deleteButton.getText().equals("Delete")) {
+                    db.removeCredential(idx);
+
+                    try {
+                        db.update();
+                    } catch (IOException ioException) {
+                        JOptionPane.showMessageDialog(panel1, "Failed to save changes!");
+                    }
+                } else {
+                    deleteButton.setText("Delete");
+                    editButton.setText("Edit");
+                    descriptionField.setEditable(false);
+                    usernameField.setEditable(false);
+                    passwordField.setEditable(false);
+                    list1.setEnabled(true);
+                    searchButton.setEnabled(true);
+                    addButton.setEnabled(true);
+                }
 
                 if (listModel.getSize() > 0) {
                     list1.setSelectedIndex(max(idx - 1, 0));
-                }
-
-                try {
-                    db.update();
-                } catch (IOException ioException) {
-                    JOptionPane.showMessageDialog(panel1, "Failed to save changes!");
                 }
             }
         });
@@ -83,13 +163,13 @@ public class MainWindow {
                     Credential c = (Credential) list1.getSelectedValue();
 
                     if (c == null) {
-                        textField3.setText("");
-                        textField2.setText("");
-                        passwordField1.setText("");
+                        descriptionField.setText("");
+                        usernameField.setText("");
+                        passwordField.setText("");
                     } else {
-                        textField3.setText(c.description);
-                        textField2.setText(c.username);
-                        passwordField1.setText(c.password);
+                        descriptionField.setText(c.description);
+                        usernameField.setText(c.username);
+                        passwordField.setText(c.password);
                     }
                 }
             }
@@ -97,23 +177,23 @@ public class MainWindow {
         copyButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                copyToClipboard(textField2.getText());
+                copyToClipboard(usernameField.getText());
             }
         });
         copyButton2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                copyToClipboard(passwordField1.getText());
+                copyToClipboard(new String(passwordField.getPassword()));
             }
         });
         showButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (showButton.getText() == "Show") {
-                    passwordField1.setEchoChar((char) 0);
+                if (showButton.getText().equals("Show")) {
+                    passwordField.setEchoChar((char) 0);
                     showButton.setText("Hide");
                 } else {
-                    passwordField1.setEchoChar('•');
+                    passwordField.setEchoChar('•');
                     showButton.setText("Show");
                 }
             }
@@ -171,21 +251,21 @@ public class MainWindow {
         final JLabel label1 = new JLabel();
         label1.setText("Username");
         panel2.add(label1, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        textField2 = new JTextField();
-        textField2.setEditable(false);
-        panel2.add(textField2, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        usernameField = new JTextField();
+        usernameField.setEditable(false);
+        panel2.add(usernameField, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label2 = new JLabel();
         label2.setText("Password");
         panel2.add(label2, new com.intellij.uiDesigner.core.GridConstraints(4, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        passwordField1 = new JPasswordField();
-        passwordField1.setEditable(false);
-        panel2.add(passwordField1, new com.intellij.uiDesigner.core.GridConstraints(5, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        passwordField = new JPasswordField();
+        passwordField.setEditable(false);
+        panel2.add(passwordField, new com.intellij.uiDesigner.core.GridConstraints(5, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label3 = new JLabel();
         label3.setText("Account Name");
         panel2.add(label3, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        textField3 = new JTextField();
-        textField3.setEditable(false);
-        panel2.add(textField3, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        descriptionField = new JTextField();
+        descriptionField.setEditable(false);
+        panel2.add(descriptionField, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         copyButton = new JButton();
         copyButton.setText("Copy");
         panel2.add(copyButton, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
