@@ -32,8 +32,17 @@ public class MainWindow {
     private JButton showButton;
     private JButton searchButton;
     private JLabel databaseLabel;
+    private UiState state;
+
+    enum UiState {
+        DISPLAY_CREDENTIAL,
+        CREATE_CREDENTIAL,
+        EDIT_CREDENTIAL,
+    }
 
     public MainWindow(Database db) {
+        state = UiState.DISPLAY_CREDENTIAL;
+
         DefaultListModel<Credential> listModel = new DefaultListModel<>();
         List<Credential> credentials = db.getCredentials();
         listModel.addAll(credentials);
@@ -49,56 +58,18 @@ public class MainWindow {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                editButton.setText("Create");
-                deleteButton.setText("Cancel");
                 listModel.addElement(new Credential("( New Account )", "", ""));
                 list1.setSelectedIndex(listModel.getSize() - 1);
-
                 descriptionField.setText("");
-                descriptionField.setEditable(true);
-                usernameField.setEditable(true);
-                passwordField.setEditable(true);
-                passwordField.setEchoChar((char) 0);
-                addButton.setEnabled(false);
-                searchButton.setEnabled(false);
-                list1.setEnabled(false);
+
+                enterUiState(UiState.CREATE_CREDENTIAL);
             }
         });
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (editButton.getText().equals("Edit")) {
-                    editButton.setText("Save");
-                    descriptionField.setEditable(true);
-                    usernameField.setEditable(true);
-                    passwordField.setEditable(true);
-                    list1.setEnabled(false);
-                    searchButton.setEnabled(false);
-                    addButton.setEnabled(false);
-                    deleteButton.setEnabled(false);
-                } else if (editButton.getText().equals("Save")) {
-                    Credential c = (Credential) list1.getSelectedValue();
-                    c.description = descriptionField.getText();
-                    c.username = usernameField.getText();
-                    c.password = new String(passwordField.getPassword());
-                    listModel.set(list1.getSelectedIndex(), c);
-
-                    db.updateCredential(list1.getSelectedIndex(), c);
-
-                    try {
-                        db.update();
-                    } catch (IOException ioException) {
-                        JOptionPane.showMessageDialog(panel1, "Failed to save changes");
-                    }
-
-                    editButton.setText("Edit");
-                    descriptionField.setEditable(false);
-                    usernameField.setEditable(false);
-                    passwordField.setEditable(false);
-                    list1.setEnabled(true);
-                    searchButton.setEnabled(true);
-                    addButton.setEnabled(true);
-                    deleteButton.setEnabled(true);
+                if (state == UiState.DISPLAY_CREDENTIAL) {
+                    enterUiState(UiState.EDIT_CREDENTIAL);
                 } else {
                     Credential c = (Credential) list1.getSelectedValue();
                     c.description = descriptionField.getText();
@@ -106,7 +77,11 @@ public class MainWindow {
                     c.password = new String(passwordField.getPassword());
                     listModel.set(list1.getSelectedIndex(), c);
 
-                    db.addCredential(c);
+                    if (state == UiState.CREATE_CREDENTIAL) {
+                        db.addCredential(c);
+                    } else {
+                        db.updateCredential(list1.getSelectedIndex(), c);
+                    }
 
                     try {
                         db.update();
@@ -114,15 +89,7 @@ public class MainWindow {
                         JOptionPane.showMessageDialog(panel1, "Failed to save changes");
                     }
 
-                    editButton.setText("Edit");
-                    deleteButton.setText("Delete");
-                    descriptionField.setEditable(false);
-                    usernameField.setEditable(false);
-                    passwordField.setEditable(false);
-                    list1.setEnabled(true);
-                    searchButton.setEnabled(true);
-                    addButton.setEnabled(true);
-                    deleteButton.setEnabled(true);
+                    enterUiState(UiState.DISPLAY_CREDENTIAL);
                 }
             }
         });
@@ -132,7 +99,11 @@ public class MainWindow {
                 int idx = list1.getSelectedIndex();
                 listModel.remove(idx);
 
-                if (deleteButton.getText().equals("Delete")) {
+                if (listModel.getSize() > 0) {
+                    list1.setSelectedIndex(max(idx - 1, 0));
+                }
+
+                if (state == UiState.DISPLAY_CREDENTIAL) {
                     db.removeCredential(idx);
 
                     try {
@@ -141,18 +112,7 @@ public class MainWindow {
                         JOptionPane.showMessageDialog(panel1, "Failed to save changes!");
                     }
                 } else {
-                    deleteButton.setText("Delete");
-                    editButton.setText("Edit");
-                    descriptionField.setEditable(false);
-                    usernameField.setEditable(false);
-                    passwordField.setEditable(false);
-                    list1.setEnabled(true);
-                    searchButton.setEnabled(true);
-                    addButton.setEnabled(true);
-                }
-
-                if (listModel.getSize() > 0) {
-                    list1.setSelectedIndex(max(idx - 1, 0));
+                    enterUiState(UiState.DISPLAY_CREDENTIAL);
                 }
             }
         });
@@ -218,6 +178,67 @@ public class MainWindow {
         clipboard.setContents(selection, null);
 
         JOptionPane.showMessageDialog(panel1, "Copied to clipboard!");
+    }
+
+    private void enterUiState(UiState newState) {
+        switch (newState) {
+            case CREATE_CREDENTIAL: {
+                // Button texts
+                editButton.setText("Create");
+                deleteButton.setText("Cancel");
+                // Edit fields
+                descriptionField.setEditable(true);
+                usernameField.setEditable(true);
+                passwordField.setEditable(true);
+                passwordField.setEchoChar((char) 0);
+                // Disabled widgets
+                addButton.setEnabled(false);
+                searchButton.setEnabled(false);
+                searchTextField.setEnabled(false);
+                list1.setEnabled(false);
+                // Focus
+                descriptionField.requestFocus();
+                break;
+            }
+            case DISPLAY_CREDENTIAL: {
+                // Button texts
+                editButton.setText("Edit");
+                deleteButton.setText("Delete");
+                // Edit fields
+                descriptionField.setEditable(false);
+                usernameField.setEditable(false);
+                passwordField.setEditable(false);
+                passwordField.setEchoChar('•');
+                // Disabled widgets
+                addButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+                searchButton.setEnabled(true);
+                searchTextField.setEnabled(true);
+                list1.setEnabled(true);
+                // Focus
+                searchTextField.requestFocus();
+                break;
+            }
+            case EDIT_CREDENTIAL: {
+                // Button texts
+                editButton.setText("Save");
+                // Edit fields
+                descriptionField.setEditable(true);
+                usernameField.setEditable(true);
+                passwordField.setEditable(true);
+                // Disabled widgets
+                list1.setEnabled(false);
+                searchButton.setEnabled(false);
+                searchTextField.setEnabled(false);
+                addButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+                // Focus
+                descriptionField.requestFocus();
+                break;
+            }
+        }
+
+        state = newState;
     }
 
     {

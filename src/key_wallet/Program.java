@@ -36,7 +36,8 @@ public class Program {
             return;
         }
 
-        // Get password
+        // Skip bc its annoying
+        /*// Get password
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter the password:");
         JPasswordField pass = new JPasswordField(10);
@@ -50,10 +51,12 @@ public class Program {
         // Exit if no password was entered
         if (option != 0) {
             return;
-        }
+        }*/
 
         try {
-            final MasterPassword mp = new MasterPassword(new String(pass.getPassword()), new AESEncryption());
+            // test only
+            String password = "1chtrinkenurBIER"; // new String(pass.getPassword())
+            final MasterPassword mp = new MasterPassword(password, new AESEncryption());
             final Database db = new Database(dataFile, mp);
 
             java.awt.EventQueue.invokeLater(new Runnable() {
