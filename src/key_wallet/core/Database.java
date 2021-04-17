@@ -41,6 +41,18 @@ public class Database {
         return credentials;
     }
 
+    public List<String> getCredentialNames() {
+        List<String> names = new ArrayList<>();
+        for (Credential c : credentials) {
+            names.add(c.name);
+        }
+        return names;
+    }
+
+    public Credential getCredential(int index) {
+        return credentials.get(index);
+    }
+
     public void addCredential(Credential credential) {
         credentials.add(credential);
     }

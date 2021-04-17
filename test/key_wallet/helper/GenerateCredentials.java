@@ -25,9 +25,9 @@ public class GenerateCredentials {
         Database db = new Database(dataFile, mp);
         db.clearCredentials();
 
-        db.addCredential(new Credential("Google Account", "max.mustermann@gmail.com", "m@xThaGangs1a", "Website"));
-        db.addCredential(new Credential("GMAIL Account", "max.mustermann@gmail.com", "m@xThaGangs1a", "Email"));
-        db.addCredential(new Credential("Moodle Account", "max.mustermann@student.dhbw-karlsruhe.de", "m@xThaGangs1a", "Hochschule"));
+        db.addCredential(new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website"));
+        db.addCredential(new Credential("GMail", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://mail.google.de", "Email"));
+        db.addCredential(new Credential("Moodle", "", "max.mustermann@student.dhbw-karlsruhe.de", "m@xThaGangs1a", "https://moodle.dhbw.de", "Other"));
 
         db.update();
     }

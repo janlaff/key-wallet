@@ -15,20 +15,22 @@ public class CredentialSerializer {
     public static Credential deserialize(String credentialStr) throws ParseException {
         String[] parts = credentialStr.split(CSV_SEPARATOR);
 
-        // There are exactly 4 parts of information stored per line.
-        // if its not 4, something wrong happened here
-        if (parts.length != 4) {
+        // There are exactly 6 parts of information stored per line.
+        // if its not 6, something wrong happened here
+        if (parts.length != 6) {
             throw new ParseException("Unable to construct credential object from string: " + credentialStr, 0);
         } else {
-            return new Credential(parts[0], parts[1], parts[2], parts[3]);
+            return new Credential(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
         }
     }
 
     // Converts a credential object to an immediate string representation
     public static String serialize(Credential credentialObj) {
-        return credentialObj.description + CSV_SEPARATOR
-                + credentialObj.username + CSV_SEPARATOR
+        return credentialObj.name + CSV_SEPARATOR
+                + credentialObj.login + CSV_SEPARATOR
+                + credentialObj.email + CSV_SEPARATOR
                 + credentialObj.password + CSV_SEPARATOR
+                + credentialObj.website + CSV_SEPARATOR
                 + credentialObj.category + NEWLINE;
     }
 }
