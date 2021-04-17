@@ -226,6 +226,7 @@ public class MainWindow {
                 descriptionField.setEditable(true);
                 usernameField.setEditable(true);
                 passwordField.setEditable(true);
+                passwordField.setEchoChar((char) 0);
                 // Disabled widgets
                 list1.setEnabled(false);
                 searchButton.setEnabled(false);
