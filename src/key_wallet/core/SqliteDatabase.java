@@ -19,12 +19,12 @@ public class SqliteDatabase implements IDatabase {
     }
 
     @Override
-    public List<WithId<Credential>> fetchCredentials() throws DatabaseException {
+    public List<IdWith<Credential>> fetchCredentials() throws DatabaseException {
         throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
-    public List<WithId<String>> fetchCredentialNames() throws DatabaseException {
+    public List<IdWith<String>> fetchCredentialNames() throws DatabaseException {
         throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 

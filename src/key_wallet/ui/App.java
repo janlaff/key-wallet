@@ -12,7 +12,6 @@ import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
 import java.util.List;
 
 import static java.lang.Math.max;
@@ -52,7 +51,7 @@ public class App {
     private Config config;
     private IDatabase database;
     private MasterPassword masterPassword;
-    private DefaultListModel<IDatabase.WithId<String>> credentialListModel;
+    private DefaultListModel<IDatabase.IdWith<String>> credentialListModel;
     private DefaultComboBoxModel<String> categoryComboModel;
 
     public App() {
@@ -148,7 +147,7 @@ public class App {
                     }
                 }
                 case LOAD_CREDENTIALS -> {
-                    List<IDatabase.WithId<String>> credentialNames = database.fetchCredentialNames();
+                    List<IDatabase.IdWith<String>> credentialNames = database.fetchCredentialNames();
                     credentialListModel = new DefaultListModel<>();
                     categoryComboModel = new DefaultComboBoxModel<>();
 
@@ -187,7 +186,7 @@ public class App {
                         }
 
                         int id = database.insertCredential(c);
-                        credentialListModel.addElement(new IDatabase.WithId<>(id, c.name));
+                        credentialListModel.addElement(new IDatabase.IdWith<>(id, c.name));
                         window.credentialInfoList.setSelectedIndex(credentialListModel.getSize() - 1);
 
                         uiState = UiState.DISPLAY_CREDENTIAL;
@@ -201,7 +200,7 @@ public class App {
                         c.password = new String(window.passwordField.getPassword());
                         c.website = window.websiteField.getText();
                         c.category = (String) window.categoryComboBox.getSelectedItem();
-                        credentialListModel.set(window.credentialInfoList.getSelectedIndex(), new IDatabase.WithId<>(id, c.name));
+                        credentialListModel.set(window.credentialInfoList.getSelectedIndex(), new IDatabase.IdWith<>(id, c.name));
 
                         if (categoryComboModel.getIndexOf(c.category) == -1) {
                             categoryComboModel.addElement(c.category);

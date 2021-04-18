@@ -49,22 +49,22 @@ public class FileDatabase implements IDatabase {
     }
 
     @Override
-    public List<WithId<Credential>> fetchCredentials() throws DatabaseException {
-        List<WithId<Credential>> tmp = new ArrayList<>();
+    public List<IdWith<Credential>> fetchCredentials() throws DatabaseException {
+        List<IdWith<Credential>> tmp = new ArrayList<>();
 
         for (Map.Entry<Integer, Credential> c : credentials.entrySet()) {
-            tmp.add(new WithId<>(c.getKey(), c.getValue()));
+            tmp.add(new IdWith<>(c.getKey(), c.getValue()));
         }
 
         return tmp;
     }
 
     @Override
-    public List<WithId<String>> fetchCredentialNames() throws DatabaseException {
-        List<WithId<String>> tmp = new ArrayList<>();
+    public List<IdWith<String>> fetchCredentialNames() throws DatabaseException {
+        List<IdWith<String>> tmp = new ArrayList<>();
 
         for (Map.Entry<Integer, Credential> c : credentials.entrySet()) {
-            tmp.add(new WithId<>(c.getKey(), c.getValue().name));
+            tmp.add(new IdWith<>(c.getKey(), c.getValue().name));
         }
 
         return tmp;

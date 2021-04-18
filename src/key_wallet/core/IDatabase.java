@@ -6,11 +6,11 @@ import java.io.File;
 import java.util.List;
 
 public interface IDatabase {
-    class WithId<V> {
+    class IdWith<V> {
         public int id;
         public V value;
 
-        public WithId(int id, V value) {
+        public IdWith(int id, V value) {
             this.id = id;
             this.value = value;
         }
@@ -30,9 +30,9 @@ public interface IDatabase {
 
     void close() throws DatabaseException;
 
-    List<WithId<Credential>> fetchCredentials() throws DatabaseException;
+    List<IdWith<Credential>> fetchCredentials() throws DatabaseException;
 
-    List<WithId<String>> fetchCredentialNames() throws DatabaseException;
+    List<IdWith<String>> fetchCredentialNames() throws DatabaseException;
 
     List<String> fetchCategories() throws DatabaseException;
 
