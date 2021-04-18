@@ -16,72 +16,27 @@ import java.text.ParseException;
 public class Program {
     public static void main(String[] args) throws IOException, MasterPasswordException {
         try {
-            UIManager.setLookAndFeel( new FlatLightLaf() );
-        } catch( Exception ex ) {
-            System.err.println( "Failed to initialize LaF" );
+            UIManager.setLookAndFeel(new FlatLightLaf());
+        } catch (UnsupportedLookAndFeelException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
         }
 
         // Round input corners
-        UIManager.put( "TextComponent.arc", 5 );
+        UIManager.put("TextComponent.arc", 5);
         // Better focus
-        UIManager.put( "Component.focusWidth", 1 );
+        UIManager.put("Component.focusWidth", 1);
         // Better scroll bars
-        UIManager.put( "ScrollBar.thumbArc", 999 );
-        UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
+        UIManager.put("ScrollBar.thumbArc", 999);
+        UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2));
 
-        Config config;
-        try {
-            config = Config.loadConfig();
-        } catch (ConfigException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
-            return;
-        }
-
-        File dataFile = config.getDatabaseFile();
-
-        if (config.getUiTheme().equals("Dark")) {
-            try {
-                UIManager.setLookAndFeel( new FlatDarkLaf() );
-            } catch( Exception ex ) {
-                System.err.println( "Failed to initialize LaF" );
-            }
-        }
-
-        // Get password
-        JPanel panel = new JPanel();
-        JLabel label = new JLabel("Enter the password:");
-        JPasswordField pass = new JPasswordField(10);
-        panel.add(label);
-        panel.add(pass);
-        String[] options = new String[]{"OK", "Cancel", "(Debug) Skip"};
-        int option = JOptionPane.showOptionDialog(null, panel, "Master Password",
-                JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, options, options[0]);
-
-        // Exit if no password was entered
-        if (option == 1) {
-            return;
-        }
-
-        try {
-            // Use correct password if skip is pressed (debug only)
-            String password = option == 2 ? "1chtrinkenurBIER" : new String(pass.getPassword());
-            final MasterPassword mp = new MasterPassword(password, new AESEncryption());
-            final Database db = new Database(dataFile, mp);
-
-            java.awt.EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                    MainWindow content = new MainWindow(db);
-                    JFrame frame = new JFrame("key-wallet");
-                    frame.setContentPane(content.$$$getRootComponent$$$());
-                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    frame.setSize(800, 600);
-                    frame.setVisible(true);
-                    content.initUiState();
-                }
-            });
-        } catch (MasterPasswordException | ParseException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
-        }
+        SwingUtilities.invokeLater(() -> {
+            MainWindow content = new MainWindow();
+            JFrame frame = new JFrame("key-wallet");
+            frame.setContentPane(content.$$$getRootComponent$$$());
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(800, 600);
+            frame.setVisible(true);
+            content.runStateMachine();
+        });
     }
 }

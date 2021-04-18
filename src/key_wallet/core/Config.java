@@ -28,62 +28,42 @@ public class Config {
         return uiTheme;
     }
 
-    public static Config loadConfig() throws ConfigException {
+    public static boolean available() {
+        return new File(CONFIG_FILENAME).exists();
+    }
+
+    public static Config load() throws ConfigException {
         File configFile = new File(CONFIG_FILENAME);
 
-        if (configFile.exists()) {
-            try {
-                Ini ini = new Ini(configFile);
+        try {
+            Ini ini = new Ini(configFile);
 
-                File databaseFile = new File(ini.get(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP));
-                String uiTheme = ini.get(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP);
+            File databaseFile = new File(ini.get(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP));
 
-                return new Config(databaseFile, uiTheme);
-            } catch (IOException e) {
-                throw new ConfigException("Config file found, but it is invalid");
+            String uiTheme = ini.get(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP);
+
+            if (!uiTheme.equals("Light") && !uiTheme.equals("Dark")) {
+                throw new ConfigException("Ui Theme (" + uiTheme + ") is invalid");
             }
-        } else {
-            return createConfig();
+
+            return new Config(databaseFile, uiTheme);
+        } catch (IOException e) {
+            throw new ConfigException("Config file found, but it is invalid");
         }
     }
 
-    public static Config createConfig() throws ConfigException {
-        // TODO: Create new password file if required
-
-        // Get password file
-        JFileChooser chooser = new JFileChooser("./");
-        int fileChooserResult = chooser.showOpenDialog(null);
-
-        // Exit if no file was selected
-        if (fileChooserResult != 0) {
-            throw new ConfigException("Abort due to missing database file");
-        }
-
-        File dataFile = chooser.getSelectedFile();
-
-        // Get theme
-        String[] options = new String[] { "Light", "Dark" };
-
-        int themeSelection = JOptionPane.showOptionDialog(
-                null,
-                "Select your default ui theme",
-                "Ui Theme Selection",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
-
+    public static Config create(File databaseFile, String uiTheme) throws ConfigException {
         Ini ini = new Ini();
-        ini.put(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP, dataFile.getAbsolutePath());
-        ini.put(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP, options[themeSelection]);
+        ini.put(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP, databaseFile.getAbsolutePath());
+        ini.put(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP, uiTheme);
+
+        File configFile = new File(CONFIG_FILENAME);
         try {
-            ini.store(new File(CONFIG_FILENAME));
+            ini.store(configFile);
         } catch (IOException e) {
-            throw new ConfigException("Failed to store config file");
+            throw new ConfigException("Failed to store config file: " + configFile.getAbsolutePath());
         }
 
-        return new Config(dataFile, options[themeSelection]);
+        return new Config(databaseFile, uiTheme);
     }
 }

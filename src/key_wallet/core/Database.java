@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
+    public static final String DEFAULT_FILENAME = "secret.kw";
     public static final String DB_HEADER_LINE = "V1.0-key-wallet\n";
     private final List<Credential> credentials = new ArrayList<>();
     private final MasterPassword mp;
