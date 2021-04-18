@@ -47,28 +47,25 @@ public class Program {
             }
         }
 
-        // Skip bc its annoying
         // Get password
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter the password:");
         JPasswordField pass = new JPasswordField(10);
         panel.add(label);
         panel.add(pass);
-        String[] options = new String[]{"OK", "Cancel"};
+        String[] options = new String[]{"OK", "Cancel", "(Debug) Skip"};
         int option = JOptionPane.showOptionDialog(null, panel, "Master Password",
                 JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE,
                 null, options, options[0]);
 
         // Exit if no password was entered
-        if (option != 0) {
+        if (option == 1) {
             return;
         }
 
-        // 1chtrinkenurBIER
-
         try {
-            // test only
-            String password = new String(pass.getPassword());
+            // Use correct password if skip is pressed (debug only)
+            String password = option == 2 ? "1chtrinkenurBIER" : new String(pass.getPassword());
             final MasterPassword mp = new MasterPassword(password, new AESEncryption());
             final Database db = new Database(dataFile, mp);
 
