@@ -29,7 +29,6 @@ public class App {
         LOAD_DATABASE,
         LOAD_MASTERPASSWORD,
         LOAD_CREDENTIALS,
-        UPDATE_DATABASE,
         COPY_GENERATE_PASSWORD,
         COPY_LOGIN,
         COPY_EMAIL,
@@ -49,9 +48,9 @@ public class App {
     private UiState uiState;
     private final MainWindow window;
     private Config config;
-    private Database database;
+    private IDatabase database;
     private MasterPassword masterPassword;
-    private DefaultListModel<String> credentialListModel;
+    private DefaultListModel<IDatabase.WithId<String>> credentialListModel;
     private DefaultComboBoxModel<String> categoryComboModel;
 
     public App() {
@@ -70,194 +69,148 @@ public class App {
     // Main logic of the app
     // TODO: refactor into methods
     public boolean handle(Event event) {
-        switch (event) {
-            case LOAD_CONFIG -> {
-                uiState = UiState.DISABLED;
-                updateUI();
+        try {
+            switch (event) {
+                case LOAD_CONFIG -> {
+                    uiState = UiState.DISABLED;
+                    updateUI();
 
-                try {
-                    if (Config.available()) {
-                        config = Config.load();
-                    } else { // Create new config
-                        String uiTheme = chooseUiTheme();
-
-                        if (!createNewDatabase()) { // Choose existing database
-                            JFileChooser fileChooser = new JFileChooser("./");
-                            int fileChooserResult = fileChooser.showOpenDialog(window.mainPanel);
-
-                            if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
-                                File databaseFile = fileChooser.getSelectedFile();
-                                // TODO: validate selected file is key-wallet database
-                                config = Config.create(databaseFile, uiTheme);
-                            }
-                        } else { // Create new
-                            config = Config.create(new File(Database.DEFAULT_FILENAME), uiTheme);
-                        }
-                    }
-
-                    if (config.getUiTheme().equals("Dark")) {
-                        try {
-                            UIManager.setLookAndFeel(new FlatDarkLaf());
-                            SwingUtilities.updateComponentTreeUI(window.mainPanel.getRootPane());
-                        } catch (UnsupportedLookAndFeelException e) {
-                            JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
-                        }
-                    }
-
-                    if (handle(Event.LOAD_MASTERPASSWORD)) {
-                        handle(Event.LOAD_DATABASE);
-                    }
-                } catch (ConfigException e) {
-                    JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
-                }
-            }
-            case LOAD_MASTERPASSWORD -> {
-                JPasswordField passwordField = new JPasswordField(10);
-                int choice = JOptionPane.showConfirmDialog(
-                        window.mainPanel,
-                        passwordField,
-                        "Enter Master Password",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE
-                );
-
-                if (choice == JOptionPane.OK_OPTION) {
                     try {
-                        masterPassword = new MasterPassword(new String(passwordField.getPassword()), new AESEncryption());
-                        return true;
-                    } catch (MasterPasswordException e) {
-                        JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
+                        if (Config.available()) {
+                            config = Config.load();
+                        } else { // Create new config
+                            String uiTheme = chooseUiTheme();
+                            config = Config.create(getDbConnectionUri(), uiTheme);
+                        }
 
-                        return handle(Event.LOAD_MASTERPASSWORD);
+                        if (config.getUiTheme().equals("Dark")) {
+                            try {
+                                UIManager.setLookAndFeel(new FlatDarkLaf());
+                                SwingUtilities.updateComponentTreeUI(window.mainPanel.getRootPane());
+                            } catch (UnsupportedLookAndFeelException e) {
+                                JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
+                            }
+                        }
+
+                        if (handle(Event.LOAD_MASTERPASSWORD)) {
+                            handle(Event.LOAD_DATABASE);
+                        }
+                    } catch (ConfigException e) {
+                        JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
                     }
                 }
-            }
-            case LOAD_DATABASE -> {
-                try {
-                    database = new Database(config.getDatabaseFile(), masterPassword);
-                    if (handle(Event.UPDATE_DATABASE)) {
-                        window.databaseLabel.setText("Database File: " + config.getDatabaseFile().getName());
+                case LOAD_MASTERPASSWORD -> {
+                    JPasswordField passwordField = new JPasswordField(10);
+                    int choice = JOptionPane.showConfirmDialog(
+                            window.mainPanel,
+                            passwordField,
+                            "Enter Master Password",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.PLAIN_MESSAGE
+                    );
+
+                    if (choice == JOptionPane.OK_OPTION) {
+                        try {
+                            masterPassword = new MasterPassword(new String(passwordField.getPassword()), new AESEncryption());
+                            return true;
+                        } catch (MasterPasswordException e) {
+                            JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
+
+                            return handle(Event.LOAD_MASTERPASSWORD);
+                        }
+                    }
+                }
+                case LOAD_DATABASE -> {
+                    try {
+                        database = IDatabase.create(config.getDatabaseUri());
+                        database.open(masterPassword);
+                        window.databaseLabel.setText("Database: " + database.getConnectionString());
                         handle(Event.LOAD_CREDENTIALS);
                         return true;
+                    } catch (MasterPasswordException e) { // Password is invalid
+                        JOptionPane.showMessageDialog(
+                                window.mainPanel,
+                                e.getMessage()
+                        );
+                        // Retry password
+                        return handle(Event.LOAD_MASTERPASSWORD) && handle(Event.LOAD_DATABASE);
                     }
-                } catch (MasterPasswordException e) { // Password is invalid
-                    JOptionPane.showMessageDialog(
-                            window.mainPanel,
-                            "Incorrect Password"
-                    );
-                    // Retry password
-                    return handle(Event.LOAD_MASTERPASSWORD) && handle(Event.LOAD_DATABASE);
-                } catch (ParseException e) { // Corrupt database
-                    JOptionPane.showMessageDialog(
-                            window.mainPanel,
-                            "Database is corrupt"
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-            }
-            case LOAD_CREDENTIALS -> {
-                List<String> credentialNames = database.getCredentialNames();
-                credentialListModel = new DefaultListModel<>();
-                categoryComboModel = new DefaultComboBoxModel<>();
+                case LOAD_CREDENTIALS -> {
+                    List<IDatabase.WithId<String>> credentialNames = database.fetchCredentialNames();
+                    credentialListModel = new DefaultListModel<>();
+                    categoryComboModel = new DefaultComboBoxModel<>();
 
-                if (credentialNames.isEmpty()) {
-                    uiState = UiState.NO_CREDENTIALS;
-                } else {
-                    credentialListModel.addAll(credentialNames);
-                    categoryComboModel.addAll(database.getCategories());
-
-                    uiState = UiState.DISPLAY_CREDENTIAL;
-                }
-
-                window.credentialInfoList.setModel(credentialListModel);
-                window.categoryComboBox.setModel(categoryComboModel);
-                window.credentialInfoList.setSelectedIndex(0);
-
-                updateUI();
-            }
-            case ADD_CREDENTIAL -> {
-                uiState = UiState.CREATE_CREDENTIAL;
-                updateUI();
-            }
-            case EDIT_CREATE_SAVE_CREDENTIAL -> {
-                if (uiState == UiState.CREATE_CREDENTIAL) {
-                    Credential c = new Credential(
-                            window.nameField.getText(),
-                            window.loginField.getText(),
-                            window.emailField.getText(),
-                            new String(window.passwordField.getPassword()),
-                            window.websiteField.getText(),
-                            (String) window.categoryComboBox.getSelectedItem()
-                    );
-
-                    if (categoryComboModel.getIndexOf(c.category) == -1) {
-                        categoryComboModel.addElement(c.category);
-                    }
-
-                    database.addCredential(c);
-
-                    handle(Event.UPDATE_DATABASE);
-
-                    credentialListModel.addElement(c.name);
-                    window.credentialInfoList.setSelectedIndex(credentialListModel.getSize() - 1);
-
-                    uiState = UiState.DISPLAY_CREDENTIAL;
-                } else if (uiState == UiState.EDIT_CREDENTIAL) {
-                    int index = window.credentialInfoList.getSelectedIndex();
-                    Credential c = database.getCredential(index);
-                    c.name = window.nameField.getText();
-                    c.login = window.loginField.getText();
-                    c.email = window.emailField.getText();
-                    c.password = new String(window.passwordField.getPassword());
-                    c.website = window.websiteField.getText();
-                    c.category = (String) window.categoryComboBox.getSelectedItem();
-                    credentialListModel.set(window.credentialInfoList.getSelectedIndex(), c.name);
-
-                    if (categoryComboModel.getIndexOf(c.category) == -1) {
-                        categoryComboModel.addElement(c.category);
-                    }
-
-                    database.updateCredential(window.credentialInfoList.getSelectedIndex(), c);
-
-                    handle(Event.UPDATE_DATABASE);
-
-                    uiState = UiState.DISPLAY_CREDENTIAL;
-                } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
-                    uiState = UiState.EDIT_CREDENTIAL;
-                }
-
-                updateUI();
-            }
-            case SELECT_CREDENTIAL -> {
-                int index = window.credentialInfoList.getSelectedIndex();
-
-                if (index != -1) {
-                    Credential c = database.getCredential(index);
-
-                    window.nameField.setText(c.name);
-                    window.loginField.setText(c.login);
-                    window.emailField.setText(c.email);
-                    window.passwordField.setText(c.password);
-                    window.websiteField.setText(c.website);
-                    window.categoryComboBox.setSelectedItem(c.category);
-                }
-            }
-            case UPDATE_DATABASE -> {
-                try {
-                    database.update();
-                    return true;
-                } catch (IOException ioException) {
-                    JOptionPane.showMessageDialog(window.mainPanel, "Failed write to database");
-                }
-            }
-            case DELETE_DISCARD_CREDENTIAL -> {
-                if (uiState == UiState.CREATE_CREDENTIAL || uiState == UiState.EDIT_CREDENTIAL) {
-                    if (credentialListModel.getSize() == 0) {
+                    if (credentialNames.isEmpty()) {
                         uiState = UiState.NO_CREDENTIALS;
                     } else {
+                        credentialListModel.addAll(credentialNames);
+                        categoryComboModel.addAll(database.fetchCategories());
+
+                        uiState = UiState.DISPLAY_CREDENTIAL;
+                    }
+
+                    window.credentialInfoList.setModel(credentialListModel);
+                    window.categoryComboBox.setModel(categoryComboModel);
+                    window.credentialInfoList.setSelectedIndex(0);
+
+                    updateUI();
+                }
+                case ADD_CREDENTIAL -> {
+                    uiState = UiState.CREATE_CREDENTIAL;
+                    updateUI();
+                }
+                case EDIT_CREATE_SAVE_CREDENTIAL -> {
+                    if (uiState == UiState.CREATE_CREDENTIAL) {
+                        Credential c = new Credential(
+                                window.nameField.getText(),
+                                window.loginField.getText(),
+                                window.emailField.getText(),
+                                new String(window.passwordField.getPassword()),
+                                window.websiteField.getText(),
+                                (String) window.categoryComboBox.getSelectedItem()
+                        );
+
+                        if (categoryComboModel.getIndexOf(c.category) == -1) {
+                            categoryComboModel.addElement(c.category);
+                        }
+
+                        int id = database.insertCredential(c);
+                        credentialListModel.addElement(new IDatabase.WithId<>(id, c.name));
+                        window.credentialInfoList.setSelectedIndex(credentialListModel.getSize() - 1);
+
+                        uiState = UiState.DISPLAY_CREDENTIAL;
+                    } else if (uiState == UiState.EDIT_CREDENTIAL) {
                         int index = window.credentialInfoList.getSelectedIndex();
-                        Credential c = database.getCredential(index);
+                        int id = credentialListModel.get(index).id;
+                        Credential c = database.fetchCredential(id);
+                        c.name = window.nameField.getText();
+                        c.login = window.loginField.getText();
+                        c.email = window.emailField.getText();
+                        c.password = new String(window.passwordField.getPassword());
+                        c.website = window.websiteField.getText();
+                        c.category = (String) window.categoryComboBox.getSelectedItem();
+                        credentialListModel.set(window.credentialInfoList.getSelectedIndex(), new IDatabase.WithId<>(id, c.name));
+
+                        if (categoryComboModel.getIndexOf(c.category) == -1) {
+                            categoryComboModel.addElement(c.category);
+                        }
+
+                        database.updateCredential(id, c);
+
+                        uiState = UiState.DISPLAY_CREDENTIAL;
+                    } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
+                        uiState = UiState.EDIT_CREDENTIAL;
+                    }
+
+                    updateUI();
+                }
+                case SELECT_CREDENTIAL -> {
+                    int index = window.credentialInfoList.getSelectedIndex();
+
+                    if (index != -1) {
+                        int id = credentialListModel.get(index).id;
+                        Credential c = database.fetchCredential(id);
 
                         window.nameField.setText(c.name);
                         window.loginField.setText(c.login);
@@ -265,64 +218,87 @@ public class App {
                         window.passwordField.setText(c.password);
                         window.websiteField.setText(c.website);
                         window.categoryComboBox.setSelectedItem(c.category);
-
-                        uiState = UiState.DISPLAY_CREDENTIAL;
                     }
-                } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
-                    int idx = window.credentialInfoList.getSelectedIndex();
-                    credentialListModel.remove(idx);
+                }
+                case DELETE_DISCARD_CREDENTIAL -> {
+                    if (uiState == UiState.CREATE_CREDENTIAL || uiState == UiState.EDIT_CREDENTIAL) {
+                        if (credentialListModel.getSize() == 0) {
+                            uiState = UiState.NO_CREDENTIALS;
+                        } else {
+                            int index = window.credentialInfoList.getSelectedIndex();
+                            int id = credentialListModel.get(index).id;
 
-                    database.removeCredential(idx);
+                            Credential c = database.fetchCredential(id);
 
-                    handle(Event.UPDATE_DATABASE);
+                            window.nameField.setText(c.name);
+                            window.loginField.setText(c.login);
+                            window.emailField.setText(c.email);
+                            window.passwordField.setText(c.password);
+                            window.websiteField.setText(c.website);
+                            window.categoryComboBox.setSelectedItem(c.category);
 
-                    if (credentialListModel.getSize() > 0) {
-                        window.credentialInfoList.setSelectedIndex(max(idx - 1, 0));
+                            uiState = UiState.DISPLAY_CREDENTIAL;
+                        }
+                    } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
+                        int idx = window.credentialInfoList.getSelectedIndex();
+                        int id = credentialListModel.get(idx).id;
+                        credentialListModel.remove(idx);
 
-                        uiState = UiState.DISPLAY_CREDENTIAL;
+                        database.deleteCredential(id);
+
+                        if (credentialListModel.getSize() > 0) {
+                            window.credentialInfoList.setSelectedIndex(max(idx - 1, 0));
+
+                            uiState = UiState.DISPLAY_CREDENTIAL;
+                        } else {
+                            uiState = UiState.NO_CREDENTIALS;
+                        }
+                    }
+
+                    updateUI();
+                }
+                case COPY_GENERATE_PASSWORD -> {
+                    if (uiState == UiState.CREATE_CREDENTIAL || uiState == UiState.EDIT_CREDENTIAL) {
+                        window.passwordField.setText(generatePassword());
+                    } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
+                        copyToClipboard(new String(window.passwordField.getPassword()));
+                    }
+                }
+                case COPY_EMAIL -> {
+                    copyToClipboard(window.emailField.getText());
+                }
+                case COPY_LOGIN -> {
+                    copyToClipboard(window.loginField.getText());
+                }
+                case OPEN_WEBSITE -> {
+                    String website = window.websiteField.getText();
+
+                    if (!website.isEmpty()) {
+                        try {
+                            Desktop.getDesktop().browse(URI.create(website));
+                        } catch (IOException ioException) {
+                            JOptionPane.showMessageDialog(window.mainPanel, "Failed to open web browser");
+                        }
+                    }
+                }
+                case SHOW_HIDE_PASSWORD -> {
+                    if (window.showPasswordButton.getText().equals("Show")) {
+                        window.showPasswordButton.setText("Hide");
+                        window.passwordField.setEchoChar((char) 0);
                     } else {
-                        uiState = UiState.NO_CREDENTIALS;
+                        window.showPasswordButton.setText("Show");
+                        window.passwordField.setEchoChar('•');
                     }
                 }
-
-                updateUI();
-            }
-            case COPY_GENERATE_PASSWORD -> {
-                if (uiState == UiState.CREATE_CREDENTIAL || uiState == UiState.EDIT_CREDENTIAL) {
-                    window.passwordField.setText(generatePassword());
-                } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
-                    copyToClipboard(new String(window.passwordField.getPassword()));
+                default -> {
+                    JOptionPane.showMessageDialog(window.mainPanel, "Unhandled event");
                 }
             }
-            case COPY_EMAIL -> {
-                copyToClipboard(window.emailField.getText());
-            }
-            case COPY_LOGIN -> {
-                copyToClipboard(window.loginField.getText());
-            }
-            case OPEN_WEBSITE -> {
-                String website = window.websiteField.getText();
-
-                if (!website.isEmpty()) {
-                    try {
-                        Desktop.getDesktop().browse(URI.create(website));
-                    } catch (IOException ioException) {
-                        JOptionPane.showMessageDialog(window.mainPanel, "Failed to open web browser");
-                    }
-                }
-            }
-            case SHOW_HIDE_PASSWORD -> {
-                if (window.showPasswordButton.getText().equals("Show")) {
-                    window.showPasswordButton.setText("Hide");
-                    window.passwordField.setEchoChar((char)0);
-                } else {
-                    window.showPasswordButton.setText("Show");
-                    window.passwordField.setEchoChar('•');
-                }
-            }
-            default -> {
-                JOptionPane.showMessageDialog(window.mainPanel, "Unhandled event");
-            }
+        } catch (DatabaseException e) {
+            JOptionPane.showMessageDialog(
+                    window.mainPanel,
+                    e.getMessage()
+            );
         }
 
         return false;
@@ -358,8 +334,8 @@ public class App {
         return themeOptions[themeChoice];
     }
 
-    private boolean createNewDatabase() {
-        String[] databaseOptions = new String[]{"Create New", "Choose Existing"};
+    private String getDbConnectionUri() {
+        String[] databaseOptions = new String[]{"Create new", "Choose existing", "Connect to remote"};
 
         int databaseChoice = JOptionPane.showOptionDialog(
                 window.mainPanel,
@@ -372,7 +348,23 @@ public class App {
                 databaseOptions[0]
         );
 
-        return databaseChoice == 0; // true if "Create new" selected
+        if (databaseChoice == 0) {
+            return FileDatabase.DEFAULT_URI;
+        } else if (databaseChoice == 1) {
+            JFileChooser fileChooser = new JFileChooser("./");
+            int fileChooserResult = fileChooser.showOpenDialog(window.mainPanel);
+
+            if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
+                File databaseFile = fileChooser.getSelectedFile();
+                // TODO: check if valid database file
+                return FileDatabase.LOCATOR + databaseFile.getAbsolutePath();
+            } else {
+                return getDbConnectionUri();
+            }
+        } else {
+            // TODO: add new dialog
+            return SqliteDatabase.DEFAULT_URI;
+        }
     }
 
     private void updateUI() {

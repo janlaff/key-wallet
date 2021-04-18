@@ -13,6 +13,8 @@ import java.util.*;
 
 public class FileDatabase implements IDatabase {
     public static final String DEFAULT_FILENAME = "secret.kw";
+    public static final String LOCATOR = "file:////";
+    public static final String DEFAULT_URI = LOCATOR + DEFAULT_FILENAME;
     public static final String FILE_HEADER = "KWDB";
     public static final String PASSWORD_SALT = "FleurDeSalt\n";
 
@@ -125,7 +127,7 @@ public class FileDatabase implements IDatabase {
 
     @Override
     public String getConnectionString() {
-        return "file:///" + file.getAbsolutePath();
+        return "file:///" + file.getName();
     }
 
     private String decrypt(byte[] data) throws DatabaseException, MasterPasswordException {

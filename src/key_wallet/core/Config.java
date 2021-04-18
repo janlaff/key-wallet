@@ -12,16 +12,16 @@ public class Config {
     private static String CONFIG_DATABASE_PROP = "database";
     private static String CONFIG_THEME_PROP = "theme";
 
-    private File databaseFile;
+    private String databaseUri;
     private String uiTheme;
 
-    private Config(File databaseFile, String uiTheme) {
-        this.databaseFile = databaseFile;
+    private Config(String databaseUri, String uiTheme) {
+        this.databaseUri = databaseUri;
         this.uiTheme = uiTheme;
     }
 
-    public File getDatabaseFile() {
-        return databaseFile;
+    public String getDatabaseUri() {
+        return databaseUri;
     }
 
     public String getUiTheme() {
@@ -38,23 +38,22 @@ public class Config {
         try {
             Ini ini = new Ini(configFile);
 
-            File databaseFile = new File(ini.get(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP));
-
+            String databaseUri = ini.get(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP);
             String uiTheme = ini.get(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP);
 
             if (!uiTheme.equals("Light") && !uiTheme.equals("Dark")) {
                 throw new ConfigException("Ui Theme (" + uiTheme + ") is invalid");
             }
 
-            return new Config(databaseFile, uiTheme);
+            return new Config(databaseUri, uiTheme);
         } catch (IOException e) {
             throw new ConfigException("Config file found, but it is invalid");
         }
     }
 
-    public static Config create(File databaseFile, String uiTheme) throws ConfigException {
+    public static Config create(String databaseUri, String uiTheme) throws ConfigException {
         Ini ini = new Ini();
-        ini.put(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP, databaseFile.getAbsolutePath());
+        ini.put(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP, databaseUri);
         ini.put(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP, uiTheme);
 
         File configFile = new File(CONFIG_FILENAME);
@@ -64,6 +63,6 @@ public class Config {
             throw new ConfigException("Failed to store config file: " + configFile.getAbsolutePath());
         }
 
-        return new Config(databaseFile, uiTheme);
+        return new Config(databaseUri, uiTheme);
     }
 }

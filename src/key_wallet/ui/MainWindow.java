@@ -1,15 +1,15 @@
 package key_wallet.ui;
 
+import key_wallet.core.IDatabase;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 
-import static java.lang.Math.max;
-
 public class MainWindow {
     public JPanel mainPanel;
     public JTextField searchTextField;
-    public JList<String> credentialInfoList;
+    public JList credentialInfoList;
     public JButton addButton;
     public JButton editButton;
     public JButton deleteButton;
@@ -73,6 +73,13 @@ public class MainWindow {
 
         switchDatabaseButton.addActionListener((e) -> {
             app.handle(App.Event.SWITCH_DATABASE);
+        });
+
+        credentialInfoList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                return super.getListCellRendererComponent(list, ((IDatabase.WithId<String>) value).value, index, isSelected, cellHasFocus);
+            }
         });
     }
 
@@ -166,7 +173,7 @@ public class MainWindow {
         deleteButton.setText("Delete");
         panel3.add(deleteButton, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         databaseLabel = new JLabel();
-        databaseLabel.setText("Database File: None");
+        databaseLabel.setText("Database: None");
         mainPanel.add(databaseLabel, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
