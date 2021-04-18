@@ -47,7 +47,7 @@ public class App {
     }
 
     private UiState uiState;
-    private MainWindow window;
+    private final MainWindow window;
     private Config config;
     private Database database;
     private MasterPassword masterPassword;
@@ -55,19 +55,20 @@ public class App {
     private DefaultComboBoxModel<String> categoryComboModel;
 
     public App() {
-        uiState = UiState.DISABLED;
-
+        // Instantiate widgets
         window = new MainWindow(this);
-
+        // Create frame and set window as content
         JFrame frame = new JFrame("key-wallet");
         frame.setContentPane(window.$$$getRootComponent$$$());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         frame.setVisible(true);
-
+        // Load configuration file
         handle(Event.LOAD_CONFIG);
     }
 
+    // Main logic of the app
+    // TODO: refactor into methods
     public boolean handle(Event event) {
         switch (event) {
             case LOAD_CONFIG -> {
@@ -77,46 +78,20 @@ public class App {
                 try {
                     if (Config.available()) {
                         config = Config.load();
-                    } else {
-                        // Theme setup
-                        String[] themeOptions = new String[]{"Light", "Dark"};
+                    } else { // Create new config
+                        String uiTheme = chooseUiTheme();
 
-                        int themeChoice = JOptionPane.showOptionDialog(
-                                window.mainPanel,
-                                "Choose ui theme",
-                                "Ui Theme Selection",
-                                JOptionPane.DEFAULT_OPTION,
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                themeOptions,
-                                themeOptions[0]
-                        );
-
-                        // Database setup
-                        String[] databaseOptions = new String[]{"Create New", "Choose Existing"};
-
-                        int databaseChoice = JOptionPane.showOptionDialog(
-                                window.mainPanel,
-                                "Choose application database",
-                                "Database Setup",
-                                JOptionPane.DEFAULT_OPTION,
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                databaseOptions,
-                                databaseOptions[0]
-                        );
-
-                        if (databaseChoice == 1) { // Choose existing
+                        if (!createNewDatabase()) { // Choose existing database
                             JFileChooser fileChooser = new JFileChooser("./");
                             int fileChooserResult = fileChooser.showOpenDialog(window.mainPanel);
 
                             if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
                                 File databaseFile = fileChooser.getSelectedFile();
                                 // TODO: validate selected file is key-wallet database
-                                config = Config.create(databaseFile, themeOptions[themeChoice]);
+                                config = Config.create(databaseFile, uiTheme);
                             }
                         } else { // Create new
-                            config = Config.create(new File(Database.DEFAULT_FILENAME), themeOptions[themeChoice]);
+                            config = Config.create(new File(Database.DEFAULT_FILENAME), uiTheme);
                         }
                     }
 
@@ -364,6 +339,40 @@ public class App {
     private String generatePassword() {
         // TODO: password generation algorithm
         return "some_strong_password";
+    }
+
+    private String chooseUiTheme() {
+        String[] themeOptions = new String[]{"Light", "Dark"};
+
+        int themeChoice = JOptionPane.showOptionDialog(
+                window.mainPanel,
+                "Choose ui theme",
+                "Ui Theme Selection",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                themeOptions,
+                themeOptions[0]
+        );
+
+        return themeOptions[themeChoice];
+    }
+
+    private boolean createNewDatabase() {
+        String[] databaseOptions = new String[]{"Create New", "Choose Existing"};
+
+        int databaseChoice = JOptionPane.showOptionDialog(
+                window.mainPanel,
+                "Choose application database",
+                "Database Setup",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                databaseOptions,
+                databaseOptions[0]
+        );
+
+        return databaseChoice == 0; // true if "Create new" selected
     }
 
     private void updateUI() {
