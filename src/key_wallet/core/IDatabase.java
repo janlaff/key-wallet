@@ -17,8 +17,8 @@ public interface IDatabase {
     }
 
     static IDatabase create(String connectionString) throws DatabaseException {
-        if (connectionString.startsWith(FileDatabase.LOCATOR)) {
-            return new FileDatabase(new File(connectionString.substring(FileDatabase.LOCATOR.length())));
+        if (connectionString.startsWith(CsvDatabase.LOCATOR)) {
+            return new CsvDatabase(new File(connectionString.substring(CsvDatabase.LOCATOR.length())));
         } else if (connectionString.startsWith(SqliteDatabase.LOCATOR)) {
             return new SqliteDatabase();
         } else {

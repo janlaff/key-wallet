@@ -7,13 +7,13 @@ import org.junit.Test;
 
 import java.io.File;
 
-public class FileDatabaseTest {
+public class CsvDatabaseTest {
     @Test
     public void createNewDatabaseTest() throws MasterPasswordException, DatabaseException {
         File dbFile = new File("./create-new-test.kw");
         dbFile.delete();
 
-        FileDatabase db = new FileDatabase(dbFile);
+        CsvDatabase db = new CsvDatabase(dbFile);
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         db.open(mp);
@@ -30,13 +30,13 @@ public class FileDatabaseTest {
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         {
-            FileDatabase db = new FileDatabase(dbFile);
+            CsvDatabase db = new CsvDatabase(dbFile);
             db.open(mp);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
-        FileDatabase db = new FileDatabase(dbFile);
+        CsvDatabase db = new CsvDatabase(dbFile);
         db.open(mp);
 
         Assert.assertTrue(dbFile.delete());
@@ -51,14 +51,14 @@ public class FileDatabaseTest {
         Credential sample = new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website");
 
         {
-            FileDatabase db = new FileDatabase(dbFile);
+            CsvDatabase db = new CsvDatabase(dbFile);
             db.open(mp);
             db.insertCredential(sample);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
-        FileDatabase db = new FileDatabase(dbFile);
+        CsvDatabase db = new CsvDatabase(dbFile);
         db.open(mp);
         Assert.assertEquals(sample.password, db.fetchCredential(0).password);
         Assert.assertTrue(dbFile.delete());
@@ -74,7 +74,7 @@ public class FileDatabaseTest {
 
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
-        FileDatabase db = new FileDatabase(dataFile);
+        CsvDatabase db = new CsvDatabase(dataFile);
         db.open(mp);
 
         db.insertCredential(new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website"));

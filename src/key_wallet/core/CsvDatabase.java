@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.*;
 
-public class FileDatabase implements IDatabase {
+public class CsvDatabase implements IDatabase {
     public static final String DEFAULT_FILENAME = "secret.kw";
     public static final String LOCATOR = "file:////";
     public static final String DEFAULT_URI = LOCATOR + DEFAULT_FILENAME;
@@ -22,7 +22,7 @@ public class FileDatabase implements IDatabase {
     private MasterPassword masterPassword;
     private final Map<Integer, Credential> credentials = new HashMap<>();
 
-    public FileDatabase(File file) {
+    public CsvDatabase(File file) {
         this.file = file;
     }
 

@@ -367,14 +367,14 @@ public class App {
         );
 
         if (databaseChoice == 0) {
-            return FileDatabase.DEFAULT_URI;
+            return CsvDatabase.DEFAULT_URI;
         } else if (databaseChoice == 1) {
             JFileChooser fileChooser = new JFileChooser("./");
             int fileChooserResult = fileChooser.showOpenDialog(window.mainPanel);
 
             if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
                 File databaseFile = fileChooser.getSelectedFile();
-                return FileDatabase.LOCATOR + databaseFile.getAbsolutePath();
+                return CsvDatabase.LOCATOR + databaseFile.getAbsolutePath();
             } else {
                 return getDbConnectionUri();
             }
