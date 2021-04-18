@@ -35,6 +35,8 @@ public class App {
         SHOW_HIDE_PASSWORD,
         OPEN_WEBSITE,
         FILTER_CREDENTIALS,
+        LOAD_DATABASE_URI,
+        LOAD_UI_THEME,
     }
 
     public enum UiState {
@@ -71,33 +73,42 @@ public class App {
     public boolean handle(Event event) {
         try {
             switch (event) {
+                case SWITCH_DATABASE -> {
+                    handle(Event.LOAD_DATABASE_URI);
+                    handle(Event.LOAD_CONFIG);
+                }
+                case LOAD_UI_THEME -> {
+                    config.setUiTheme(chooseUiTheme());
+                    handle(Event.LOAD_DATABASE_URI);
+                }
+                case LOAD_DATABASE_URI -> {
+                    config.setDatabaseUri(getDbConnectionUri());
+                    config.save();
+                }
                 case LOAD_CONFIG -> {
                     uiState = UiState.DISABLED;
                     updateUI();
 
-                    try {
-                        if (Config.available()) {
-                            config = Config.load();
-                        } else { // Create new config
-                            String uiTheme = chooseUiTheme();
-                            config = Config.create(getDbConnectionUri(), uiTheme);
-                        }
-
-                        if (config.getUiTheme().equals("Dark")) {
-                            try {
-                                UIManager.setLookAndFeel(new FlatDarkLaf());
-                                SwingUtilities.updateComponentTreeUI(window.mainPanel.getRootPane());
-                            } catch (UnsupportedLookAndFeelException e) {
-                                JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
-                            }
-                        }
-
-                        if (handle(Event.LOAD_MASTERPASSWORD)) {
-                            handle(Event.LOAD_DATABASE);
-                        }
-                    } catch (ConfigException e) {
-                        JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
+                    if (Config.available()) {
+                        config = Config.load();
+                    } else { // Create new config
+                        config = new Config("", "");
+                        handle(Event.LOAD_UI_THEME);
                     }
+
+                    if (config.getUiTheme().equals("Dark")) {
+                        try {
+                            UIManager.setLookAndFeel(new FlatDarkLaf());
+                            SwingUtilities.updateComponentTreeUI(window.mainPanel.getRootPane());
+                        } catch (UnsupportedLookAndFeelException e) {
+                            JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
+                        }
+                    }
+
+                    if (handle(Event.LOAD_MASTERPASSWORD)) {
+                        handle(Event.LOAD_DATABASE);
+                    }
+
                 }
                 case LOAD_MASTERPASSWORD -> {
                     JPasswordField passwordField = new JPasswordField(10);
@@ -294,11 +305,19 @@ public class App {
                     JOptionPane.showMessageDialog(window.mainPanel, "Unhandled event");
                 }
             }
+        } catch (ConfigException e) {
+            JOptionPane.showMessageDialog(
+                    window.mainPanel,
+                    e.getMessage()
+            );
         } catch (DatabaseException e) {
             JOptionPane.showMessageDialog(
                     window.mainPanel,
                     e.getMessage()
             );
+
+            handle(Event.LOAD_DATABASE_URI);
+            handle(Event.LOAD_CONFIG);
         }
 
         return false;
@@ -356,7 +375,6 @@ public class App {
 
             if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
                 File databaseFile = fileChooser.getSelectedFile();
-                // TODO: check if valid database file
                 return FileDatabase.LOCATOR + databaseFile.getAbsolutePath();
             } else {
                 return getDbConnectionUri();
@@ -447,7 +465,7 @@ public class App {
                 window.passwordField.setText("");
                 window.websiteField.setText("");
                 window.categoryComboBox.setSelectedItem("");
-                window.passwordField.setEchoChar((char)0);
+                window.passwordField.setEchoChar((char) 0);
 
                 window.editButton.setText("Create");
                 window.deleteButton.setText("Cancel");
@@ -507,7 +525,7 @@ public class App {
                 window.categoryComboBox.setEnabled(true);
                 window.switchDatabaseButton.setEnabled(false);
 
-                window.passwordField.setEchoChar((char)0);
+                window.passwordField.setEchoChar((char) 0);
 
                 window.editButton.setText("Save");
                 window.deleteButton.setText("Discard");

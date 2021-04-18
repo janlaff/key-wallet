@@ -15,7 +15,7 @@ public class Config {
     private String databaseUri;
     private String uiTheme;
 
-    private Config(String databaseUri, String uiTheme) {
+    public Config(String databaseUri, String uiTheme) {
         this.databaseUri = databaseUri;
         this.uiTheme = uiTheme;
     }
@@ -24,8 +24,16 @@ public class Config {
         return databaseUri;
     }
 
+    public void setDatabaseUri(String databaseUri) {
+        this.databaseUri = databaseUri;
+    }
+
     public String getUiTheme() {
         return uiTheme;
+    }
+
+    public void setUiTheme(String uiTheme) {
+        this.uiTheme = uiTheme;
     }
 
     public static boolean available() {
@@ -51,7 +59,7 @@ public class Config {
         }
     }
 
-    public static Config create(String databaseUri, String uiTheme) throws ConfigException {
+    public void save() throws ConfigException {
         Ini ini = new Ini();
         ini.put(CONFIG_SETTINGS_HEADER, CONFIG_DATABASE_PROP, databaseUri);
         ini.put(CONFIG_SETTINGS_HEADER, CONFIG_THEME_PROP, uiTheme);
@@ -62,7 +70,5 @@ public class Config {
         } catch (IOException e) {
             throw new ConfigException("Failed to store config file: " + configFile.getAbsolutePath());
         }
-
-        return new Config(databaseUri, uiTheme);
     }
 }

@@ -10,51 +10,52 @@ public class SqliteDatabase implements IDatabase {
 
     @Override
     public void open(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException {
-
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public void close() throws DatabaseException {
-
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public List<WithId<Credential>> fetchCredentials() throws DatabaseException {
-        return null;
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public List<WithId<String>> fetchCredentialNames() throws DatabaseException {
-        return null;
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public List<String> fetchCategories() throws DatabaseException {
-        return null;
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public Credential fetchCredential(int credentialId) throws DatabaseException {
-        return null;
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public int insertCredential(Credential credential) throws DatabaseException {
-        return 0;
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public void deleteCredential(int credentialId) throws DatabaseException {
-
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public void updateCredential(int credentialId, Credential credential) throws DatabaseException {
-
+        throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 
     @Override
     public String getConnectionString() {
-        return null;
+        // TODO: return connection string
+        return "Sqlite Database";
     }
 }
