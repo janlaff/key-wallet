@@ -17,8 +17,8 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
-public class StateMachine {
-    public enum AppEvent {
+public class App {
+    public enum Event {
         DELETE_DISCARD_CREDENTIAL,
         EDIT_CREATE_SAVE_CREDENTIAL,
         ADD_CREDENTIAL,
@@ -54,12 +54,21 @@ public class StateMachine {
     private DefaultListModel<String> credentialListModel;
     private DefaultComboBoxModel<String> categoryComboModel;
 
-    public StateMachine(MainWindow window) {
+    public App() {
         uiState = UiState.DISABLED;
-        this.window = window;
+
+        window = new MainWindow(this);
+
+        JFrame frame = new JFrame("key-wallet");
+        frame.setContentPane(window.$$$getRootComponent$$$());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
+        frame.setVisible(true);
+
+        handle(Event.LOAD_CONFIG);
     }
 
-    public boolean handle(AppEvent event) {
+    public boolean handle(Event event) {
         switch (event) {
             case LOAD_CONFIG -> {
                 uiState = UiState.DISABLED;
@@ -120,8 +129,8 @@ public class StateMachine {
                         }
                     }
 
-                    if (handle(AppEvent.LOAD_MASTERPASSWORD)) {
-                        handle(AppEvent.LOAD_DATABASE);
+                    if (handle(Event.LOAD_MASTERPASSWORD)) {
+                        handle(Event.LOAD_DATABASE);
                     }
                 } catch (ConfigException e) {
                     JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
@@ -143,15 +152,17 @@ public class StateMachine {
                         return true;
                     } catch (MasterPasswordException e) {
                         JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
+
+                        return handle(Event.LOAD_MASTERPASSWORD);
                     }
                 }
             }
             case LOAD_DATABASE -> {
                 try {
                     database = new Database(config.getDatabaseFile(), masterPassword);
-                    if (handle(AppEvent.UPDATE_DATABASE)) {
+                    if (handle(Event.UPDATE_DATABASE)) {
                         window.databaseLabel.setText("Database File: " + config.getDatabaseFile().getName());
-                        handle(AppEvent.LOAD_CREDENTIALS);
+                        handle(Event.LOAD_CREDENTIALS);
                         return true;
                     }
                 } catch (MasterPasswordException e) { // Password is invalid
@@ -160,7 +171,7 @@ public class StateMachine {
                             "Incorrect Password"
                     );
                     // Retry password
-                    return handle(AppEvent.LOAD_MASTERPASSWORD) && handle(AppEvent.LOAD_DATABASE);
+                    return handle(Event.LOAD_MASTERPASSWORD) && handle(Event.LOAD_DATABASE);
                 } catch (ParseException e) { // Corrupt database
                     JOptionPane.showMessageDialog(
                             window.mainPanel,
@@ -211,7 +222,7 @@ public class StateMachine {
 
                     database.addCredential(c);
 
-                    handle(AppEvent.UPDATE_DATABASE);
+                    handle(Event.UPDATE_DATABASE);
 
                     credentialListModel.addElement(c.name);
                     window.credentialInfoList.setSelectedIndex(credentialListModel.getSize() - 1);
@@ -234,7 +245,7 @@ public class StateMachine {
 
                     database.updateCredential(window.credentialInfoList.getSelectedIndex(), c);
 
-                    handle(AppEvent.UPDATE_DATABASE);
+                    handle(Event.UPDATE_DATABASE);
 
                     uiState = UiState.DISPLAY_CREDENTIAL;
                 } else if (uiState == UiState.DISPLAY_CREDENTIAL) {
@@ -288,7 +299,7 @@ public class StateMachine {
 
                     database.removeCredential(idx);
 
-                    handle(AppEvent.UPDATE_DATABASE);
+                    handle(Event.UPDATE_DATABASE);
 
                     if (credentialListModel.getSize() > 0) {
                         window.credentialInfoList.setSelectedIndex(max(idx - 1, 0));

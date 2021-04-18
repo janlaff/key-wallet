@@ -1,7 +1,5 @@
 package key_wallet.ui;
 
-import com.formdev.flatlaf.FlatLightLaf;
-
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
@@ -29,60 +27,53 @@ public class MainWindow {
     public JButton copyEmailButton;
     public JTextField websiteField;
     public JButton openButton;
-    private final StateMachine stateMachine;
 
-    public MainWindow() {
-        stateMachine = new StateMachine(this);
-
+    public MainWindow(App app) {
         addButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.ADD_CREDENTIAL);
+            app.handle(App.Event.ADD_CREDENTIAL);
         });
 
         editButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.EDIT_CREATE_SAVE_CREDENTIAL);
+            app.handle(App.Event.EDIT_CREATE_SAVE_CREDENTIAL);
         });
 
         credentialInfoList.addListSelectionListener((e) -> {
             if (!e.getValueIsAdjusting()) {
-                stateMachine.handle(StateMachine.AppEvent.SELECT_CREDENTIAL);
+                app.handle(App.Event.SELECT_CREDENTIAL);
             }
         });
 
         deleteButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.DELETE_DISCARD_CREDENTIAL);
+            app.handle(App.Event.DELETE_DISCARD_CREDENTIAL);
         });
 
         copyPasswordButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.COPY_GENERATE_PASSWORD);
+            app.handle(App.Event.COPY_GENERATE_PASSWORD);
         });
 
         copyLoginButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.COPY_LOGIN);
+            app.handle(App.Event.COPY_LOGIN);
         });
 
         copyEmailButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.COPY_EMAIL);
+            app.handle(App.Event.COPY_EMAIL);
         });
 
         showPasswordButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.SHOW_HIDE_PASSWORD);
+            app.handle(App.Event.SHOW_HIDE_PASSWORD);
         });
 
         openButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.OPEN_WEBSITE);
+            app.handle(App.Event.OPEN_WEBSITE);
         });
 
         searchButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.FILTER_CREDENTIALS);
+            app.handle(App.Event.FILTER_CREDENTIALS);
         });
 
         switchDatabaseButton.addActionListener((e) -> {
-            stateMachine.handle(StateMachine.AppEvent.SWITCH_DATABASE);
+            app.handle(App.Event.SWITCH_DATABASE);
         });
-    }
-
-    public void runStateMachine() {
-        stateMachine.handle(StateMachine.AppEvent.LOAD_CONFIG);
     }
 
     {
