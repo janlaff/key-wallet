@@ -8,10 +8,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -186,7 +182,13 @@ public class MainWindow {
         });
         copyLoginButton.addActionListener(e -> copyToClipboard(loginField.getText()));
         copyEmailButton.addActionListener(e -> copyToClipboard(emailField.getText()));
-        copyPasswordButton.addActionListener(e -> copyToClipboard(new String(passwordField.getPassword())));
+        copyPasswordButton.addActionListener(e -> {
+            if (state == UiState.CREATE_CREDENTIAL || state == UiState.EDIT_CREDENTIAL) {
+                passwordField.setText(generatePassword());
+            } else {
+                copyToClipboard(new String(passwordField.getPassword()));
+            }
+        });
         showPasswordButton.addActionListener(e -> {
             switch (passwordVisibility) {
                 case SHOWN -> {
@@ -236,6 +238,11 @@ public class MainWindow {
         JOptionPane.showMessageDialog(mainPanel, "Copied to clipboard!");
     }
 
+    private String generatePassword() {
+        // TODO: password generation algorithm
+        return "some_strong_password";
+    }
+
     private void enterUiState(UiState newState) {
         switch (newState) {
             case CREATE_CREDENTIAL -> {
@@ -254,7 +261,7 @@ public class MainWindow {
                 categoryComboBox.setEnabled(true);
                 copyLoginButton.setEnabled(false);
                 copyEmailButton.setEnabled(false);
-                copyPasswordButton.setEnabled(false);
+                copyPasswordButton.setEnabled(true);
                 showPasswordButton.setEnabled(false);
                 openButton.setEnabled(false);
                 categoryComboBox.setEnabled(true);
@@ -274,6 +281,7 @@ public class MainWindow {
                 // Change button texts
                 editButton.setText("Create");
                 deleteButton.setText("Cancel");
+                copyPasswordButton.setText("Generate");
 
                 // Password visibility
                 passwordVisibility = PasswordVisibility.SHOWN;
@@ -306,6 +314,7 @@ public class MainWindow {
                 // Change button texts
                 editButton.setText("Edit");
                 deleteButton.setText("Delete");
+                copyPasswordButton.setText("Copy");
 
                 // Password visibility
                 passwordVisibility = PasswordVisibility.HIDDEN;
@@ -326,7 +335,7 @@ public class MainWindow {
                 categoryComboBox.setEnabled(true);
                 copyLoginButton.setEnabled(false);
                 copyEmailButton.setEnabled(false);
-                copyPasswordButton.setEnabled(false);
+                copyPasswordButton.setEnabled(true);
                 showPasswordButton.setEnabled(false);
                 openButton.setEnabled(false);
                 categoryComboBox.setEnabled(true);
@@ -338,6 +347,7 @@ public class MainWindow {
                 // Change button texts
                 editButton.setText("Save");
                 deleteButton.setText("Cancel");
+                copyPasswordButton.setText("Generate");
 
                 // Password visibility
                 passwordVisibility = PasswordVisibility.SHOWN;
@@ -378,6 +388,7 @@ public class MainWindow {
                 // Change button texts
                 editButton.setText("Edit");
                 deleteButton.setText("Delete");
+                copyPasswordButton.setText("Copy");
 
                 // Password visibility
                 passwordVisibility = PasswordVisibility.HIDDEN;
