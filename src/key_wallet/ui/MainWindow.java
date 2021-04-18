@@ -10,6 +10,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -38,11 +40,18 @@ public class MainWindow {
     private JTextField websiteField;
     private JButton openButton;
     private UiState state;
+    private PasswordVisibility passwordVisibility;
 
     enum UiState {
         DISPLAY_CREDENTIAL,
         CREATE_CREDENTIAL,
         EDIT_CREDENTIAL,
+        NO_CREDENTIALS,
+    }
+
+    enum PasswordVisibility {
+        HIDDEN,
+        SHOWN,
     }
 
     public MainWindow(Database db) {
@@ -56,19 +65,10 @@ public class MainWindow {
         categoryComboBox.setModel(comboModel);
 
         addButton.addActionListener(e -> {
-            nameField.setText("");
-            loginField.setText("");
-            emailField.setText("");
-            passwordField.setText("");
-            websiteField.setText("");
-            categoryComboBox.setSelectedItem("Other");
-
             enterUiState(UiState.CREATE_CREDENTIAL);
         });
         editButton.addActionListener(e -> {
-            if (state == UiState.DISPLAY_CREDENTIAL) {
-                enterUiState(UiState.EDIT_CREDENTIAL);
-            } else if (state == UiState.CREATE_CREDENTIAL) {
+            if (state == UiState.CREATE_CREDENTIAL) {
                 Credential c = new Credential(
                         nameField.getText(),
                         loginField.getText(),
@@ -77,6 +77,10 @@ public class MainWindow {
                         websiteField.getText(),
                         (String) categoryComboBox.getSelectedItem()
                 );
+
+                if (!categories.contains(c.category)) {
+                    comboModel.addElement(c.category);
+                }
 
                 db.addCredential(c);
 
@@ -89,7 +93,9 @@ public class MainWindow {
                 listModel.addElement(c.name);
                 credentialInfoList.setSelectedIndex(listModel.getSize() - 1);
                 enterUiState(UiState.DISPLAY_CREDENTIAL);
-            } else {
+            } else if (state == UiState.DISPLAY_CREDENTIAL) {
+                enterUiState(UiState.EDIT_CREDENTIAL);
+            } else if (state == UiState.EDIT_CREDENTIAL) {
                 int index = credentialInfoList.getSelectedIndex();
                 Credential c = db.getCredential(index);
                 c.name = nameField.getText();
@@ -117,18 +123,20 @@ public class MainWindow {
         });
         deleteButton.addActionListener(e -> {
             if (state == UiState.CREATE_CREDENTIAL) {
-                if (listModel.getSize() > 0) {
-                    credentialInfoList.setSelectedIndex(0);
+                if (listModel.getSize() == 0) {
+                    enterUiState(UiState.NO_CREDENTIALS);
                 } else {
-                    nameField.setText("");
-                    loginField.setText("");
-                    emailField.setText("");
-                    passwordField.setText("");
-                    websiteField.setText("");
-                    categoryComboBox.setSelectedItem("");
-                }
+                    int index = credentialInfoList.getSelectedIndex();
+                    Credential c = db.getCredential(index);
 
-                enterUiState(UiState.DISPLAY_CREDENTIAL);
+                    nameField.setText(c.name);
+                    loginField.setText(c.login);
+                    emailField.setText(c.email);
+                    passwordField.setText(c.password);
+                    websiteField.setText(c.website);
+                    categoryComboBox.setSelectedItem(c.category);
+                    enterUiState(UiState.DISPLAY_CREDENTIAL);
+                }
             } else if (state == UiState.EDIT_CREDENTIAL) {
                 int index = credentialInfoList.getSelectedIndex();
                 Credential c = db.getCredential(index);
@@ -139,23 +147,10 @@ public class MainWindow {
                 passwordField.setText(c.password);
                 websiteField.setText(c.website);
                 categoryComboBox.setSelectedItem(c.category);
-                listModel.set(credentialInfoList.getSelectedIndex(), c.name);
-
                 enterUiState(UiState.DISPLAY_CREDENTIAL);
-            } else {
+            } else if (state == UiState.DISPLAY_CREDENTIAL) {
                 int idx = credentialInfoList.getSelectedIndex();
                 listModel.remove(idx);
-
-                if (listModel.getSize() > 0) {
-                    credentialInfoList.setSelectedIndex(max(idx - 1, 0));
-                } else {
-                    nameField.setText("");
-                    loginField.setText("");
-                    emailField.setText("");
-                    passwordField.setText("");
-                    websiteField.setText("");
-                    categoryComboBox.setSelectedItem("");
-                }
 
                 db.removeCredential(idx);
 
@@ -165,7 +160,12 @@ public class MainWindow {
                     JOptionPane.showMessageDialog(mainPanel, "Failed to save changes!");
                 }
 
-                enterUiState(UiState.DISPLAY_CREDENTIAL);
+                if (listModel.getSize() > 0) {
+                    credentialInfoList.setSelectedIndex(max(idx - 1, 0));
+                    enterUiState(UiState.DISPLAY_CREDENTIAL);
+                } else {
+                    enterUiState(UiState.NO_CREDENTIALS);
+                }
             }
         });
         credentialInfoList.addListSelectionListener(e -> {
@@ -188,12 +188,17 @@ public class MainWindow {
         copyEmailButton.addActionListener(e -> copyToClipboard(emailField.getText()));
         copyPasswordButton.addActionListener(e -> copyToClipboard(new String(passwordField.getPassword())));
         showPasswordButton.addActionListener(e -> {
-            if (showPasswordButton.getText().equals("Show")) {
-                passwordField.setEchoChar((char) 0);
-                showPasswordButton.setText("Hide");
-            } else {
-                passwordField.setEchoChar('•');
-                showPasswordButton.setText("Show");
+            switch (passwordVisibility) {
+                case SHOWN -> {
+                    passwordField.setEchoChar('•');
+                    showPasswordButton.setText("Show");
+                    passwordVisibility = PasswordVisibility.HIDDEN;
+                }
+                case HIDDEN -> {
+                    passwordField.setEchoChar((char) 0);
+                    showPasswordButton.setText("Hide");
+                    passwordVisibility = PasswordVisibility.SHOWN;
+                }
             }
         });
         searchButton.addActionListener(e -> {
@@ -215,9 +220,12 @@ public class MainWindow {
 
         if (credentialInfoList.getModel().getSize() != 0) {
             credentialInfoList.setSelectedIndex(0);
+            state = UiState.DISPLAY_CREDENTIAL;
+        } else {
+            state = UiState.NO_CREDENTIALS;
         }
 
-        enterUiState(UiState.DISPLAY_CREDENTIAL);
+        passwordVisibility = PasswordVisibility.HIDDEN;
     }
 
     private void copyToClipboard(String value) {
@@ -231,87 +239,168 @@ public class MainWindow {
     private void enterUiState(UiState newState) {
         switch (newState) {
             case CREATE_CREDENTIAL -> {
-                // Button texts
-                editButton.setText("Create");
-                deleteButton.setText("Cancel");
-                // Edit fields
-                nameField.setEditable(true);
-                loginField.setEditable(true);
-                emailField.setEditable(true);
-                passwordField.setEditable(true);
-                passwordField.setEchoChar((char) 0);
-                websiteField.setEditable(true);
-                categoryComboBox.setEditable(true);
-                // Disabled widgets
-                addButton.setEnabled(false);
-                searchButton.setEnabled(false);
+                // Enable/Disable components
                 searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
                 credentialInfoList.setEnabled(false);
-                categoryComboBox.setEnabled(true);
+                addButton.setEnabled(false);
                 editButton.setEnabled(true);
                 deleteButton.setEnabled(true);
-                // Focus
-                nameField.requestFocus();
-                credentialInfoList.clearSelection();
-            }
-            case DISPLAY_CREDENTIAL -> {
-                // Button texts
-                editButton.setText("Edit");
-                deleteButton.setText("Delete");
-                // Edit fields
-                nameField.setEditable(false);
-                loginField.setEditable(false);
-                emailField.setEditable(false);
-                passwordField.setEditable(false);
-                passwordField.setEchoChar('•');
-                websiteField.setEditable(false);
-                categoryComboBox.setEditable(false);
-                categoryComboBox.setEnabled(false);
-                // Disabled widgets
-                addButton.setEnabled(true);
-
-                boolean enableUi = credentialInfoList.getModel().getSize() != 0;
-                editButton.setEnabled(enableUi);
-                deleteButton.setEnabled(enableUi);
-                copyEmailButton.setEnabled(enableUi);
-                copyLoginButton.setEnabled(enableUi);
-                copyPasswordButton.setEnabled(enableUi);
-                showPasswordButton.setEnabled(enableUi);
-                openButton.setEnabled(enableUi);
-                searchButton.setEnabled(enableUi);
-                searchTextField.setEnabled(enableUi);
-                credentialInfoList.setEnabled(enableUi);
-            }
-            case EDIT_CREDENTIAL -> {
-                // Button texts
-                editButton.setText("Save");
-                deleteButton.setText("Cancel");
-                // Edit fields
-                nameField.setEditable(true);
-                loginField.setEditable(true);
-                emailField.setEditable(true);
-                passwordField.setEditable(true);
-                passwordField.setEchoChar((char) 0);
-                websiteField.setEditable(true);
-                categoryComboBox.setEditable(true);
-                // Disabled widgets
-                credentialInfoList.setEnabled(false);
-                searchButton.setEnabled(false);
-                searchTextField.setEnabled(false);
-                addButton.setEnabled(false);
-                deleteButton.setEnabled(true);
+                nameField.setEnabled(true);
+                loginField.setEnabled(true);
+                emailField.setEnabled(true);
+                passwordField.setEnabled(true);
+                websiteField.setEnabled(true);
                 categoryComboBox.setEnabled(true);
-                copyEmailButton.setEnabled(false);
                 copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
                 copyPasswordButton.setEnabled(false);
                 showPasswordButton.setEnabled(false);
                 openButton.setEnabled(false);
-                // Focus
+                categoryComboBox.setEnabled(true);
+                switchDatabaseButton.setEnabled(false);
+
+                // Clear input fields
+                nameField.setText("");
+                loginField.setText("");
+                emailField.setText("");
+                passwordField.setText("");
+                websiteField.setText("");
+                categoryComboBox.setSelectedItem("");
+
+                // Focus on first input field
                 nameField.requestFocus();
+
+                // Change button texts
+                editButton.setText("Create");
+                deleteButton.setText("Cancel");
+
+                // Password visibility
+                passwordVisibility = PasswordVisibility.SHOWN;
+            }
+            case DISPLAY_CREDENTIAL -> {
+                // Enable/Disable components
+                searchTextField.setEnabled(true);
+                searchButton.setEnabled(true);
+                credentialInfoList.setEnabled(true);
+                addButton.setEnabled(true);
+                editButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+                nameField.setEnabled(false);
+                loginField.setEnabled(false);
+                emailField.setEnabled(false);
+                passwordField.setEnabled(false);
+                websiteField.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                copyLoginButton.setEnabled(true);
+                copyEmailButton.setEnabled(true);
+                copyPasswordButton.setEnabled(true);
+                showPasswordButton.setEnabled(true);
+                openButton.setEnabled(true);
+                categoryComboBox.setEnabled(false);
+                switchDatabaseButton.setEnabled(true);
+
+                // Focus on NEW ITEM
+                credentialInfoList.requestFocus();
+
+                // Change button texts
+                editButton.setText("Edit");
+                deleteButton.setText("Delete");
+
+                // Password visibility
+                passwordVisibility = PasswordVisibility.HIDDEN;
+            }
+            case EDIT_CREDENTIAL -> {
+                // Enable/Disable components
+                searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
+                credentialInfoList.setEnabled(false);
+                addButton.setEnabled(false);
+                editButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+                nameField.setEnabled(true);
+                loginField.setEnabled(true);
+                emailField.setEnabled(true);
+                passwordField.setEnabled(true);
+                websiteField.setEnabled(true);
+                categoryComboBox.setEnabled(true);
+                copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
+                copyPasswordButton.setEnabled(false);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
+                categoryComboBox.setEnabled(true);
+                switchDatabaseButton.setEnabled(false);
+
+                // Focus on add button
+                nameField.requestFocusInWindow();
+
+                // Change button texts
+                editButton.setText("Save");
+                deleteButton.setText("Cancel");
+
+                // Password visibility
+                passwordVisibility = PasswordVisibility.SHOWN;
+            }
+            case NO_CREDENTIALS -> {
+                // Enable/Disable components
+                searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
+                credentialInfoList.setEnabled(false);
+                addButton.setEnabled(true);
+                editButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+                nameField.setEnabled(false);
+                loginField.setEnabled(false);
+                emailField.setEnabled(false);
+                passwordField.setEnabled(false);
+                websiteField.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
+                copyPasswordButton.setEnabled(false);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                switchDatabaseButton.setEnabled(true);
+
+                // Clear input fields
+                nameField.setText("");
+                loginField.setText("");
+                emailField.setText("");
+                passwordField.setText("");
+                websiteField.setText("");
+                categoryComboBox.setSelectedItem("");
+
+                // Focus on add button
+                addButton.requestFocusInWindow();
+
+                // Change button texts
+                editButton.setText("Edit");
+                deleteButton.setText("Delete");
+
+                // Password visibility
+                passwordVisibility = PasswordVisibility.HIDDEN;
+            }
+        }
+
+        switch (passwordVisibility) {
+            case HIDDEN -> {
+                passwordField.setEchoChar('•');
+                showPasswordButton.setText("Show");
+            }
+            case SHOWN -> {
+                passwordField.setEchoChar((char) 0);
+                showPasswordButton.setText("Hide");
             }
         }
 
         state = newState;
+    }
+
+    public void initUiState() {
+        // Fix to set focus correctly after components are visible
+        enterUiState(state);
     }
 
     {
@@ -346,19 +435,19 @@ public class MainWindow {
         label1.setText("Login");
         panel1.add(label1, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         loginField = new JTextField();
-        loginField.setEditable(false);
+        loginField.setEditable(true);
         panel1.add(loginField, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label2 = new JLabel();
         label2.setText("Password");
         panel1.add(label2, new com.intellij.uiDesigner.core.GridConstraints(6, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         passwordField = new JPasswordField();
-        passwordField.setEditable(false);
+        passwordField.setEditable(true);
         panel1.add(passwordField, new com.intellij.uiDesigner.core.GridConstraints(7, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JLabel label3 = new JLabel();
         label3.setText("Name");
         panel1.add(label3, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         nameField = new JTextField();
-        nameField.setEditable(false);
+        nameField.setEditable(true);
         panel1.add(nameField, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         copyLoginButton = new JButton();
         copyLoginButton.setText("Copy");
@@ -376,6 +465,7 @@ public class MainWindow {
         label4.setText("Category");
         panel1.add(label4, new com.intellij.uiDesigner.core.GridConstraints(10, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         categoryComboBox = new JComboBox();
+        categoryComboBox.setEditable(true);
         panel1.add(categoryComboBox, new com.intellij.uiDesigner.core.GridConstraints(11, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label5 = new JLabel();
         label5.setText("Email");

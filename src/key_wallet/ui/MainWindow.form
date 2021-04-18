@@ -54,7 +54,7 @@
               </grid>
             </constraints>
             <properties>
-              <editable value="false"/>
+              <editable value="true"/>
             </properties>
           </component>
           <component id="8443f" class="javax.swing.JLabel">
@@ -72,7 +72,7 @@
               </grid>
             </constraints>
             <properties>
-              <editable value="false"/>
+              <editable value="true"/>
             </properties>
           </component>
           <component id="d20c3" class="javax.swing.JLabel">
@@ -90,7 +90,7 @@
               </grid>
             </constraints>
             <properties>
-              <editable value="false"/>
+              <editable value="true"/>
             </properties>
           </component>
           <component id="3dcff" class="javax.swing.JButton" binding="copyLoginButton">
@@ -139,7 +139,9 @@
             <constraints>
               <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <editable value="true"/>
+            </properties>
           </component>
           <component id="b1b3b" class="javax.swing.JLabel">
             <constraints>
