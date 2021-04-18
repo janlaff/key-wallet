@@ -29,12 +29,22 @@ public class Program {
         UIManager.put( "ScrollBar.thumbArc", 999 );
         UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
 
-        File dataFile = null;
+        Config config;
         try {
-            dataFile = Config.getDatabaseFile();
+            config = Config.loadConfig();
         } catch (ConfigException e) {
             JOptionPane.showMessageDialog(null, e.getMessage());
             return;
+        }
+
+        File dataFile = config.getDatabaseFile();
+
+        if (config.getUiTheme().equals("Dark")) {
+            try {
+                UIManager.setLookAndFeel( new FlatDarkLaf() );
+            } catch( Exception ex ) {
+                System.err.println( "Failed to initialize LaF" );
+            }
         }
 
         // Skip bc its annoying
@@ -62,7 +72,6 @@ public class Program {
 
             java.awt.EventQueue.invokeLater(new Runnable() {
                 public void run() {
-                    //new MainWindow(db);
                     MainWindow content = new MainWindow(db);
                     JFrame frame = new JFrame("key-wallet");
                     frame.setContentPane(content.$$$getRootComponent$$$());
