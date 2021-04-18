@@ -29,7 +29,7 @@ public class MainWindow {
     public JButton copyEmailButton;
     public JTextField websiteField;
     public JButton openButton;
-    private StateMachine stateMachine;
+    private final StateMachine stateMachine;
 
     public MainWindow() {
         stateMachine = new StateMachine(this);

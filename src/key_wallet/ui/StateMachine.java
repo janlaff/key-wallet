@@ -1,7 +1,6 @@
 package key_wallet.ui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import key_wallet.core.*;
 import key_wallet.crypto.AESEncryption;
 import key_wallet.data.Credential;
@@ -112,14 +111,14 @@ public class StateMachine {
                         }
                     }
 
-                    // TODO: Doesnt work rn
-                    /*if (config.getUiTheme().equals("Dark")) {
+                    if (config.getUiTheme().equals("Dark")) {
                         try {
                             UIManager.setLookAndFeel(new FlatDarkLaf());
+                            SwingUtilities.updateComponentTreeUI(window.mainPanel.getRootPane());
                         } catch (UnsupportedLookAndFeelException e) {
                             JOptionPane.showMessageDialog(window.mainPanel, e.getMessage());
                         }
-                    }*/
+                    }
 
                     if (handle(AppEvent.LOAD_MASTERPASSWORD)) {
                         handle(AppEvent.LOAD_DATABASE);
