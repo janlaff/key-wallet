@@ -22,8 +22,8 @@ public interface IDatabase {
     List<WithId<String>> fetchCredentialNames() throws DatabaseException;
     List<String> fetchCategories() throws DatabaseException;
 
+    Credential fetchCredential(int credentialId) throws DatabaseException;
     int insertCredential(Credential credential) throws DatabaseException;
-
     void deleteCredential(int credentialId) throws DatabaseException;
     void updateCredential(int credentialId, Credential credential) throws DatabaseException;
 

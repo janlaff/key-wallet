@@ -13,7 +13,7 @@ import java.util.*;
 
 public class FileDatabase implements IDatabase {
     public static final String DEFAULT_FILENAME = "secret.kw";
-    public static final String FILE_HEADER = "KFW";
+    public static final String FILE_HEADER = "KWDB";
     public static final String PASSWORD_SALT = "FleurDeSalt\n";
 
     private File file;
@@ -83,6 +83,15 @@ public class FileDatabase implements IDatabase {
     }
 
     @Override
+    public Credential fetchCredential(int credentialId) throws DatabaseException {
+        if (!credentials.containsKey(credentialId)) {
+            throw new DatabaseException("Credential with id " + credentialId + " does not exist");
+        } else {
+            return credentials.get(credentialId);
+        }
+    }
+
+    @Override
     public int insertCredential(Credential credential) throws DatabaseException {
         // TODO: reuse low ids
         // Generate new id
@@ -90,6 +99,7 @@ public class FileDatabase implements IDatabase {
         while (credentials.containsKey(id)) id++;
 
         credentials.put(id, credential);
+        saveChanges();
         return id;
     }
 
@@ -100,6 +110,7 @@ public class FileDatabase implements IDatabase {
         } else {
             credentials.remove(credentialId);
         }
+        saveChanges();
     }
 
     @Override
@@ -109,6 +120,7 @@ public class FileDatabase implements IDatabase {
         } else {
             credentials.replace(credentialId, credential);
         }
+        saveChanges();
     }
 
     @Override
