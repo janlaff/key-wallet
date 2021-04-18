@@ -48,13 +48,15 @@ public class Config {
     }
 
     public static Config createConfig() throws ConfigException {
+        // TODO: Create new password file if required
+
         // Get password file
         JFileChooser chooser = new JFileChooser("./");
         int fileChooserResult = chooser.showOpenDialog(null);
 
         // Exit if no file was selected
         if (fileChooserResult != 0) {
-            throw new ConfigException("Abort due to missing cancel password dialog");
+            throw new ConfigException("Abort due to missing database file");
         }
 
         File dataFile = chooser.getSelectedFile();

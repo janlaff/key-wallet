@@ -48,7 +48,7 @@ public class Program {
         }
 
         // Skip bc its annoying
-        /*// Get password
+        // Get password
         JPanel panel = new JPanel();
         JLabel label = new JLabel("Enter the password:");
         JPasswordField pass = new JPasswordField(10);
@@ -62,11 +62,13 @@ public class Program {
         // Exit if no password was entered
         if (option != 0) {
             return;
-        }*/
+        }
+
+        // 1chtrinkenurBIER
 
         try {
             // test only
-            String password = "1chtrinkenurBIER"; // new String(pass.getPassword())
+            String password = new String(pass.getPassword());
             final MasterPassword mp = new MasterPassword(password, new AESEncryption());
             final Database db = new Database(dataFile, mp);
 
