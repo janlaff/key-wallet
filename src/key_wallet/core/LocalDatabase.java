@@ -2,7 +2,7 @@ package key_wallet.core;
 
 import key_wallet.data.Credential;
 import key_wallet.data.DataFormat;
-import key_wallet.data.KWDBFormat;
+import key_wallet.data.KWDBFileFormat;
 import key_wallet.data.DataFormatException;
 
 import java.io.File;
@@ -30,7 +30,7 @@ public class LocalDatabase implements Database {
 
         if (file.isFile()) {
             try {
-                byte[] dataBytes = KWDBFormat.read(file, masterPassword);
+                byte[] dataBytes = KWDBFileFormat.read(file, masterPassword);
                 DataFormat.Data data = dataFormat.decode(dataBytes);
 
                 int i = 0;
@@ -137,7 +137,7 @@ public class LocalDatabase implements Database {
         try {
             DataFormat.Data data = new DataFormat.Data();
             data.credentials = new ArrayList<>(credentials.values());
-            KWDBFormat.write(dataFormat.encode(data), file, masterPassword);
+            KWDBFileFormat.write(dataFormat.encode(data), file, masterPassword);
         } catch (IOException e) {
             throw new DatabaseException("Failed to write to file");
         }

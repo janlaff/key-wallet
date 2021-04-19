@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-public class KWDBFormat {
+public class KWDBFileFormat {
     public static String MAGIC_HEADER = "KWDB";
     public static int HASH_SIZE = 32;
 

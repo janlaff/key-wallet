@@ -12,11 +12,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-public class KWDBFormatTest {
+public class KWDBFileFormatTest {
     @Test(expected = IOException.class)
     public void readNonExistentFileTest() throws MasterPasswordException, IOException, DataFormatException {
         MasterPassword masterPassword = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
-        KWDBFormat.read(new File("does-not-exist.kwdb"), masterPassword);
+        KWDBFileFormat.read(new File("does-not-exist.kwdb"), masterPassword);
     }
 
     @Test
@@ -30,7 +30,7 @@ public class KWDBFormatTest {
 
         Assert.assertTrue(invalidFile.isFile());
         try {
-            KWDBFormat.read(invalidFile, masterPassword);
+            KWDBFileFormat.read(invalidFile, masterPassword);
             Assert.fail();
         } catch (DataFormatException ignored) { }
         Assert.assertTrue(invalidFile.delete());
@@ -39,7 +39,7 @@ public class KWDBFormatTest {
     @Test
     public void readWithWrongMasterPasswordTest() throws MasterPasswordException, IOException, DataFormatException {
         File someFile = new File("some-wallet.kwdb");
-        KWDBFormat.write(
+        KWDBFileFormat.write(
                 "hello world".getBytes(StandardCharsets.UTF_8),
                 someFile,
                 new MasterPassword("cry1forAnother", new AESEncryption())
@@ -47,7 +47,7 @@ public class KWDBFormatTest {
 
         Assert.assertTrue(someFile.isFile());
         try {
-            KWDBFormat.read(someFile, new MasterPassword("1chtrinkenurBIER", new AESEncryption()));
+            KWDBFileFormat.read(someFile, new MasterPassword("1chtrinkenurBIER", new AESEncryption()));
             Assert.fail();
         } catch (MasterPasswordException ignored) { }
         Assert.assertTrue(someFile.delete());
@@ -57,10 +57,10 @@ public class KWDBFormatTest {
     public void writeReadFileTest() throws MasterPasswordException, IOException, DataFormatException {
         File dbFile = new File("someDb.kwdb");
         MasterPassword masterPassword = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
-        KWDBFormat.write("hello".getBytes(StandardCharsets.UTF_8), dbFile, masterPassword);
+        KWDBFileFormat.write("hello".getBytes(StandardCharsets.UTF_8), dbFile, masterPassword);
 
         Assert.assertTrue(dbFile.isFile());
-        String result = new String(KWDBFormat.read(dbFile, masterPassword), StandardCharsets.UTF_8);
+        String result = new String(KWDBFileFormat.read(dbFile, masterPassword), StandardCharsets.UTF_8);
         Assert.assertEquals("hello", result);
         Assert.assertTrue(dbFile.delete());
     }

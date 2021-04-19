@@ -2,6 +2,7 @@ package key_wallet.core;
 
 import key_wallet.data.CSVDataFormat;
 import key_wallet.data.Credential;
+import key_wallet.data.JSONDataFormat;
 
 import java.io.File;
 import java.util.List;
@@ -19,7 +20,7 @@ public interface Database {
 
     static Database create(String connectionString) throws DatabaseException {
         if (connectionString.startsWith(LocalDatabase.LOCATOR)) {
-            return new LocalDatabase(new File(connectionString.substring(LocalDatabase.LOCATOR.length())), new CSVDataFormat());
+            return new LocalDatabase(new File(connectionString.substring(LocalDatabase.LOCATOR.length())), new JSONDataFormat());
         } else if (connectionString.startsWith(SqliteDatabase.LOCATOR)) {
             return new SqliteDatabase();
         } else {

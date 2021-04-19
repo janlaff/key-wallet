@@ -1,7 +1,7 @@
 package key_wallet.core;
 
 import key_wallet.crypto.AESEncryption;
-import key_wallet.data.CSVDataFormat;
+import key_wallet.data.JSONDataFormat;
 import key_wallet.data.Credential;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,7 +14,7 @@ public class LocalDatabaseTest {
         File dbFile = new File("./create-new-test.kw");
         dbFile.delete();
 
-        LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
+        LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         db.open(mp);
@@ -31,13 +31,13 @@ public class LocalDatabaseTest {
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         {
-            LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
+            LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
             db.open(mp);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
-        LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
+        LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
         db.open(mp);
 
         Assert.assertTrue(dbFile.delete());
@@ -52,14 +52,14 @@ public class LocalDatabaseTest {
         Credential sample = new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website");
 
         {
-            LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
+            LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
             db.open(mp);
             db.insertCredential(sample);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
-        LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
+        LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
         db.open(mp);
         Assert.assertEquals(sample.password, db.fetchCredential(0).password);
         Assert.assertTrue(dbFile.delete());
@@ -75,7 +75,7 @@ public class LocalDatabaseTest {
 
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
-        LocalDatabase db = new LocalDatabase(dataFile, new CSVDataFormat());
+        LocalDatabase db = new LocalDatabase(dataFile, new JSONDataFormat());
         db.open(mp);
 
         db.insertCredential(new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website"));
