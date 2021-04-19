@@ -1,6 +1,6 @@
 package key_wallet.ui;
 
-import key_wallet.core.IDatabase;
+import key_wallet.core.Database;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -78,7 +78,7 @@ public class MainWindow {
         credentialInfoList.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                return super.getListCellRendererComponent(list, ((IDatabase.IdWith<String>) value).value, index, isSelected, cellHasFocus);
+                return super.getListCellRendererComponent(list, ((Database.IdWith<String>) value).value, index, isSelected, cellHasFocus);
             }
         });
     }

@@ -1,29 +1,27 @@
 package key_wallet.core;
 
 import key_wallet.data.Credential;
+import key_wallet.data.DataFormat;
+import key_wallet.data.KWDBFormat;
+import key_wallet.data.DataFormatException;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.text.ParseException;
 import java.util.*;
 
-public class CsvDatabase implements IDatabase {
-    public static final String DEFAULT_FILENAME = "secret.kw";
+public class LocalDatabase implements Database {
+    public static final String DEFAULT_FILENAME = "secret.kwdb";
     public static final String LOCATOR = "file:////";
     public static final String DEFAULT_URI = LOCATOR + DEFAULT_FILENAME;
-    public static final String FILE_HEADER = "KWDB";
-    public static final String PASSWORD_SALT = "FleurDeSalt\n";
 
     private File file;
     private MasterPassword masterPassword;
     private final Map<Integer, Credential> credentials = new HashMap<>();
+    private final DataFormat dataFormat;
 
-    public CsvDatabase(File file) {
+    public LocalDatabase(File file, DataFormat dataFormat) {
         this.file = file;
+        this.dataFormat = dataFormat;
     }
 
     @Override
@@ -32,9 +30,14 @@ public class CsvDatabase implements IDatabase {
 
         if (file.isFile()) {
             try {
-                String content = decrypt(Files.readAllBytes(file.toPath()));
-                deserialize(content);
-            } catch (IOException e) {
+                byte[] dataBytes = KWDBFormat.read(file, masterPassword);
+                DataFormat.Data data = dataFormat.decode(dataBytes);
+
+                int i = 0;
+                for (Credential c : data.credentials) {
+                    credentials.put(i++, c);
+                }
+            } catch (IOException | DataFormatException e) {
                 throw new DatabaseException("Unable to open file: " + file.toPath());
             }
         } else {
@@ -130,62 +133,13 @@ public class CsvDatabase implements IDatabase {
         return "file:///" + file.getName();
     }
 
-    private String decrypt(byte[] data) throws DatabaseException, MasterPasswordException {
-        byte[] headerBytes = Arrays.copyOfRange(data, 0, FILE_HEADER.length());
-        if (!FILE_HEADER.equals(new String(headerBytes, StandardCharsets.UTF_8))) {
-            throw new DatabaseException(file.toPath() + " is not a valid file database");
-        }
-
-        byte[] contentBytes = Arrays.copyOfRange(data, FILE_HEADER.length(), data.length);
-        String decrypted = masterPassword.decrypt(contentBytes);
-
-        BufferedReader reader = new BufferedReader(new StringReader(decrypted));
-        try {
-            String line = reader.readLine();
-            if (line == null || !(line + '\n').equals(PASSWORD_SALT)) {
-                throw new MasterPasswordException("Incorrect password");
-            }
-        } catch (IOException e) {
-            throw new DatabaseException("Exception while validating master password");
-        }
-
-        return decrypted.substring(PASSWORD_SALT.length());
-    }
-
-    private void deserialize(String csv) throws DatabaseException, IOException {
-        BufferedReader reader = new BufferedReader(new StringReader(csv));
-        String line;
-
-        try {
-            int id = 0;
-            while ((line = reader.readLine()) != null) {
-                credentials.put(id++, CredentialSerializer.deserialize(line));
-            }
-        } catch (ParseException e) {
-            throw new DatabaseException("Corrupt database: " + file.toPath());
-        }
-    }
-
-    private String serialize() {
-        StringBuilder output = new StringBuilder();
-        for (Map.Entry<Integer, Credential> c : credentials.entrySet()) {
-            output.append(CredentialSerializer.serialize(c.getValue()));
-        }
-        return output.toString();
-    }
-
     private void saveChanges() throws DatabaseException {
-        byte[] header = FILE_HEADER.getBytes(StandardCharsets.UTF_8);
-        byte[] contents = masterPassword.encrypt(PASSWORD_SALT + serialize());
-        byte[] complete = new byte[header.length + contents.length];
-
-        System.arraycopy(header, 0, complete, 0, header.length);
-        System.arraycopy(contents, 0, complete, header.length, contents.length);
-
         try {
-            Files.write(file.toPath(), complete);
+            DataFormat.Data data = new DataFormat.Data();
+            data.credentials = new ArrayList<>(credentials.values());
+            KWDBFormat.write(dataFormat.encode(data), file, masterPassword);
         } catch (IOException e) {
-            throw new DatabaseException("Failed to write file: " + file.toPath());
+            throw new DatabaseException("Failed to write to file");
         }
     }
 }

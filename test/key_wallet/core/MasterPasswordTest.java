@@ -4,6 +4,8 @@ import key_wallet.crypto.PlaintextEncryption;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
+
 public class MasterPasswordTest {
     @Test(expected = MasterPasswordException.class)
     public void emptyPasswordTest() throws MasterPasswordException {
@@ -14,8 +16,8 @@ public class MasterPasswordTest {
     public void encryptAndDecryptTest() throws MasterPasswordException {
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new PlaintextEncryption());
         String randomData = "Fischers Fritz";
-        byte[] encryptedData = mp.encrypt(randomData);
-        String result = mp.decrypt(encryptedData);
+        byte[] encryptedData = mp.encrypt(randomData.getBytes(StandardCharsets.UTF_8));
+        String result = new String(mp.decrypt(encryptedData), StandardCharsets.UTF_8);
 
         Assert.assertEquals(randomData, result);
     }

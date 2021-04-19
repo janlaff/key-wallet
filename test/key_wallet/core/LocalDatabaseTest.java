@@ -1,19 +1,20 @@
 package key_wallet.core;
 
 import key_wallet.crypto.AESEncryption;
+import key_wallet.data.CSVDataFormat;
 import key_wallet.data.Credential;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 
-public class CsvDatabaseTest {
+public class LocalDatabaseTest {
     @Test
     public void createNewDatabaseTest() throws MasterPasswordException, DatabaseException {
         File dbFile = new File("./create-new-test.kw");
         dbFile.delete();
 
-        CsvDatabase db = new CsvDatabase(dbFile);
+        LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         db.open(mp);
@@ -30,13 +31,13 @@ public class CsvDatabaseTest {
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         {
-            CsvDatabase db = new CsvDatabase(dbFile);
+            LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
             db.open(mp);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
-        CsvDatabase db = new CsvDatabase(dbFile);
+        LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
         db.open(mp);
 
         Assert.assertTrue(dbFile.delete());
@@ -51,14 +52,14 @@ public class CsvDatabaseTest {
         Credential sample = new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website");
 
         {
-            CsvDatabase db = new CsvDatabase(dbFile);
+            LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
             db.open(mp);
             db.insertCredential(sample);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
-        CsvDatabase db = new CsvDatabase(dbFile);
+        LocalDatabase db = new LocalDatabase(dbFile, new CSVDataFormat());
         db.open(mp);
         Assert.assertEquals(sample.password, db.fetchCredential(0).password);
         Assert.assertTrue(dbFile.delete());
@@ -66,7 +67,7 @@ public class CsvDatabaseTest {
 
     @Test
     public void generateSampleDatabaseTest() throws MasterPasswordException, DatabaseException {
-        File dataFile = new File("secret.kw");
+        File dataFile = new File("secret.kwdb");
 
         if (dataFile.exists()) {
             dataFile.delete();
@@ -74,7 +75,7 @@ public class CsvDatabaseTest {
 
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
-        CsvDatabase db = new CsvDatabase(dataFile);
+        LocalDatabase db = new LocalDatabase(dataFile, new CSVDataFormat());
         db.open(mp);
 
         db.insertCredential(new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website"));

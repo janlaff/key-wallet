@@ -4,7 +4,7 @@ import key_wallet.data.Credential;
 
 import java.util.List;
 
-public class SqliteDatabase implements IDatabase {
+public class SqliteDatabase implements Database {
     public static final String LOCATOR = "sqlite:////";
     public static final String DEFAULT_URI = LOCATOR + "secret.db";
 

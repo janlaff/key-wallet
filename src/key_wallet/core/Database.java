@@ -1,11 +1,12 @@
 package key_wallet.core;
 
+import key_wallet.data.CSVDataFormat;
 import key_wallet.data.Credential;
 
 import java.io.File;
 import java.util.List;
 
-public interface IDatabase {
+public interface Database {
     class IdWith<V> {
         public int id;
         public V value;
@@ -16,9 +17,9 @@ public interface IDatabase {
         }
     }
 
-    static IDatabase create(String connectionString) throws DatabaseException {
-        if (connectionString.startsWith(CsvDatabase.LOCATOR)) {
-            return new CsvDatabase(new File(connectionString.substring(CsvDatabase.LOCATOR.length())));
+    static Database create(String connectionString) throws DatabaseException {
+        if (connectionString.startsWith(LocalDatabase.LOCATOR)) {
+            return new LocalDatabase(new File(connectionString.substring(LocalDatabase.LOCATOR.length())), new CSVDataFormat());
         } else if (connectionString.startsWith(SqliteDatabase.LOCATOR)) {
             return new SqliteDatabase();
         } else {

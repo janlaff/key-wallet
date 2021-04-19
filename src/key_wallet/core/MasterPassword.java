@@ -14,13 +14,12 @@ public class MasterPassword {
         this.password = password.getBytes(StandardCharsets.UTF_8);
     }
 
-    public String decrypt(byte[] data) {
-        return new String(encryption.decrypt(data, password), StandardCharsets.UTF_8);
+    public byte[] decrypt(byte[] data) {
+        return encryption.decrypt(data, password);
     }
 
-    public byte[] encrypt(String data) {
-        byte[] strBytes = data.getBytes(StandardCharsets.UTF_8);
-        return encryption.encrypt(strBytes, password);
+    public byte[] encrypt(byte[] data) {
+        return encryption.encrypt(data, password);
     }
 
     private void validatePassword(String password) throws MasterPasswordException {

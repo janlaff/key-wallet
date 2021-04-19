@@ -49,9 +49,9 @@ public class App {
     private UiState uiState;
     private final MainWindow window;
     private Config config;
-    private IDatabase database;
+    private Database database;
     private MasterPassword masterPassword;
-    private DefaultListModel<IDatabase.IdWith<String>> credentialListModel;
+    private DefaultListModel<Database.IdWith<String>> credentialListModel;
     private DefaultComboBoxModel<String> categoryComboModel;
 
     public App() {
@@ -132,7 +132,7 @@ public class App {
                 }
                 case LOAD_DATABASE -> {
                     try {
-                        database = IDatabase.create(config.getDatabaseUri());
+                        database = Database.create(config.getDatabaseUri());
                         database.open(masterPassword);
                         window.databaseLabel.setText("Database: " + database.getConnectionString());
                         handle(Event.LOAD_CREDENTIALS);
@@ -147,7 +147,7 @@ public class App {
                     }
                 }
                 case LOAD_CREDENTIALS -> {
-                    List<IDatabase.IdWith<String>> credentialNames = database.fetchCredentialNames();
+                    List<Database.IdWith<String>> credentialNames = database.fetchCredentialNames();
                     credentialListModel = new DefaultListModel<>();
                     categoryComboModel = new DefaultComboBoxModel<>();
 
@@ -186,7 +186,7 @@ public class App {
                         }
 
                         int id = database.insertCredential(c);
-                        credentialListModel.addElement(new IDatabase.IdWith<>(id, c.name));
+                        credentialListModel.addElement(new Database.IdWith<>(id, c.name));
                         window.credentialInfoList.setSelectedIndex(credentialListModel.getSize() - 1);
 
                         uiState = UiState.DISPLAY_CREDENTIAL;
@@ -200,7 +200,7 @@ public class App {
                         c.password = new String(window.passwordField.getPassword());
                         c.website = window.websiteField.getText();
                         c.category = (String) window.categoryComboBox.getSelectedItem();
-                        credentialListModel.set(window.credentialInfoList.getSelectedIndex(), new IDatabase.IdWith<>(id, c.name));
+                        credentialListModel.set(window.credentialInfoList.getSelectedIndex(), new Database.IdWith<>(id, c.name));
 
                         if (categoryComboModel.getIndexOf(c.category) == -1) {
                             categoryComboModel.addElement(c.category);
@@ -367,14 +367,14 @@ public class App {
         );
 
         if (databaseChoice == 0) {
-            return CsvDatabase.DEFAULT_URI;
+            return LocalDatabase.DEFAULT_URI;
         } else if (databaseChoice == 1) {
             JFileChooser fileChooser = new JFileChooser("./");
             int fileChooserResult = fileChooser.showOpenDialog(window.mainPanel);
 
             if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
                 File databaseFile = fileChooser.getSelectedFile();
-                return CsvDatabase.LOCATOR + databaseFile.getAbsolutePath();
+                return LocalDatabase.LOCATOR + databaseFile.getAbsolutePath();
             } else {
                 return getDbConnectionUri();
             }
