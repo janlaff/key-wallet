@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class PlaintextEncryptionTest {
     @Test
-    public void testInputEqualsOutput() {
+    public void passthroughData() {
         PlaintextEncryption pe = new PlaintextEncryption();
 
         byte[] randomData = new byte[] { 0x00, 0x52, 0x23, 0x55 };
