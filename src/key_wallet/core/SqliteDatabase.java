@@ -9,7 +9,7 @@ public class SqliteDatabase implements Database {
     public static final String DEFAULT_URI = LOCATOR + "secret.db";
 
     @Override
-    public void open(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException {
+    public void createOrOpen(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException {
         throw new DatabaseException("SqliteDatabase is currently not implemented");
     }
 

@@ -25,7 +25,7 @@ public class LocalDatabase implements Database {
     }
 
     @Override
-    public void open(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException {
+    public void createOrOpen(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException {
         this.masterPassword = masterPassword;
 
         if (file.isFile()) {

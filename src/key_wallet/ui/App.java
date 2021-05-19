@@ -133,7 +133,7 @@ public class App {
                 case LOAD_DATABASE -> {
                     try {
                         database = Database.create(config.getDatabaseUri());
-                        database.open(masterPassword);
+                        database.createOrOpen(masterPassword);
                         window.databaseLabel.setText("Database: " + database.getConnectionString());
                         handle(Event.LOAD_CREDENTIALS);
                         return true;

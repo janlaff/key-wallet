@@ -22,7 +22,7 @@ public class LocalDatabaseTest {
         LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
-        db.open(mp);
+        db.createOrOpen(mp);
 
         // Check if new database file was created
         Assert.assertTrue(dbFile.isFile());
@@ -36,14 +36,14 @@ public class LocalDatabaseTest {
         {
             LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
             // Saves a copy silently to 'dbFile'
-            db.open(mp);
+            db.createOrOpen(mp);
 
             // File should exist now
             Assert.assertTrue(dbFile.isFile());
         }
 
         LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
-        db.open(mp); // Can throw if not successful
+        db.createOrOpen(mp); // Can throw if not successful
     }
 
     @Test
@@ -56,14 +56,14 @@ public class LocalDatabaseTest {
         // Create database containing a credential
         {
             LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
-            db.open(mp);
+            db.createOrOpen(mp);
             db.insertCredential(sample);
 
             Assert.assertTrue(dbFile.isFile());
         }
 
         LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
-        db.open(mp);
+        db.createOrOpen(mp);
 
         // Check that credential was properly saved to file
         Assert.assertEquals(sample.password, db.fetchCredential(0).password);
@@ -85,7 +85,7 @@ public class LocalDatabaseTest {
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
         LocalDatabase db = new LocalDatabase(dataFile, new JSONDataFormat());
-        db.open(mp);
+        db.createOrOpen(mp);
 
         db.insertCredential(new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website"));
         db.insertCredential(new Credential("GMail", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://mail.google.de", "Email"));

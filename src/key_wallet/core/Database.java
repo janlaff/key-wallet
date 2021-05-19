@@ -28,7 +28,7 @@ public interface Database {
         }
     }
 
-    void open(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException;
+    void createOrOpen(MasterPassword masterPassword) throws DatabaseException, MasterPasswordException;
 
     void close() throws DatabaseException;
 
