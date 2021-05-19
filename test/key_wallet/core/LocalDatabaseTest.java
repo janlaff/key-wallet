@@ -5,17 +5,19 @@ import key_wallet.data.JSONDataFormat;
 import key_wallet.data.Credential;
 import org.junit.Assert;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 
 public class LocalDatabaseTest {
+    @Rule
+    public TemporaryFolder temp = new TemporaryFolder();
+
     @Test
     public void createNewLocalDatabaseFile() throws MasterPasswordException, DatabaseException {
-        File dbFile = new File("./create-new-test.kw");
-
-        // Remove file if it does already exist
-        dbFile.delete();
+        File dbFile = new File(temp.getRoot() + "/database.kw");
 
         LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
@@ -24,17 +26,12 @@ public class LocalDatabaseTest {
 
         // Check if new database file was created
         Assert.assertTrue(dbFile.isFile());
-        // Remove file for next test iteration
-        Assert.assertTrue(dbFile.delete());
     }
 
     @Test
     public void openExistingDatabaseTest() throws MasterPasswordException, DatabaseException {
-        File dbFile = new File("./open-existing-test.kw");
+        File dbFile = new File(temp.getRoot() + "/database.kw");
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
-
-        // Remove file if it does already exist
-        dbFile.delete();
 
         {
             LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
@@ -47,16 +44,11 @@ public class LocalDatabaseTest {
 
         LocalDatabase db = new LocalDatabase(dbFile, new JSONDataFormat());
         db.open(mp); // Can throw if not successful
-
-        // Remove file for next test iteration
-        Assert.assertTrue(dbFile.delete());
     }
 
     @Test
     public void loadDataFromDatabaseTest() throws MasterPasswordException, DatabaseException {
-        File dbFile = new File("./load-data-test.kw");
-        // Remove file if it does already exist
-        dbFile.delete();
+        File dbFile = new File(temp.getRoot() + "/database.kw");
 
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
         Credential sample = new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website");
@@ -75,8 +67,6 @@ public class LocalDatabaseTest {
 
         // Check that credential was properly saved to file
         Assert.assertEquals(sample.password, db.fetchCredential(0).password);
-        // Remove file for next test iteration
-        Assert.assertTrue(dbFile.delete());
     }
 
     // Not a real unit test!!
@@ -84,6 +74,7 @@ public class LocalDatabaseTest {
     @Ignore("Only useful for development")
     @Test
     public void generateSampleDatabaseTest() throws MasterPasswordException, DatabaseException {
+        // Note that this is not using the temporary folder
         File dataFile = new File("secret.kwdb");
 
         // Override existing wallet
