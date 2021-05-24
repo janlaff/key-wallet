@@ -29,7 +29,7 @@ public class LocalDatabaseTest {
     }
 
     @Test
-    public void openExistingDatabaseTest() throws MasterPasswordException, DatabaseException {
+    public void openExistingDatabase() throws MasterPasswordException, DatabaseException {
         File dbFile = new File(temp.getRoot() + "/database.kw");
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
 
@@ -47,7 +47,7 @@ public class LocalDatabaseTest {
     }
 
     @Test
-    public void loadDataFromDatabaseTest() throws MasterPasswordException, DatabaseException {
+    public void readWriteItemsToDatabase() throws MasterPasswordException, DatabaseException {
         File dbFile = new File(temp.getRoot() + "/database.kw");
 
         MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
@@ -67,28 +67,5 @@ public class LocalDatabaseTest {
 
         // Check that credential was properly saved to file
         Assert.assertEquals(sample.password, db.fetchCredential(0).password);
-    }
-
-    // Not a real unit test!!
-    // Just a simple code snippet to generate a demo wallet
-    @Ignore("Only useful for development")
-    @Test
-    public void generateSampleDatabaseTest() throws MasterPasswordException, DatabaseException {
-        // Note that this is not using the temporary folder
-        File dataFile = new File("secret.kwdb");
-
-        // Override existing wallet
-        if (dataFile.exists()) {
-            dataFile.delete();
-        }
-
-        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new AESEncryption());
-
-        LocalDatabase db = new LocalDatabase(dataFile, new JSONDataFormat());
-        db.createOrOpen(mp);
-
-        db.insertCredential(new Credential("Google", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://google.de", "Website"));
-        db.insertCredential(new Credential("GMail", "", "max.mustermann@gmail.com", "m@xThaGangs1a", "https://mail.google.de", "Email"));
-        db.insertCredential(new Credential("Moodle", "", "max.mustermann@student.dhbw-karlsruhe.de", "m@xThaGangs1a", "https://moodle.dhbw.de", "Other"));
     }
 }
