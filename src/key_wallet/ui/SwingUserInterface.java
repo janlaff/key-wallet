@@ -1,36 +1,53 @@
 package key_wallet.ui;
 
-import key_wallet.core.Database;
+import com.formdev.flatlaf.FlatDarkLaf;
+import key_wallet.core.*;
+import key_wallet.data.Credential;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
 
-public class MainWindow {
-    public JPanel mainPanel;
-    public JTextField searchTextField;
-    public JList credentialInfoList;
-    public JButton addButton;
-    public JButton editButton;
-    public JButton deleteButton;
-    public JTextField loginField;
-    public JPasswordField passwordField;
-    public JTextField nameField;
-    public JButton copyLoginButton;
-    public JButton copyPasswordButton;
-    public JButton showPasswordButton;
-    public JButton searchButton;
-    public JLabel databaseLabel;
-    public JComboBox<String> categoryComboBox;
-    public JButton switchDatabaseButton;
-    public JTextField emailField;
-    public JButton copyEmailButton;
-    public JTextField websiteField;
-    public JButton openButton;
+import static java.lang.Integer.max;
 
-    public MainWindow(App app) {
+public class SwingUserInterface implements UserInterface {
+    private JPanel mainPanel;
+    private JTextField searchTextField;
+    private JList credentialInfoList;
+    private JButton addButton;
+    private JButton editButton;
+    private JButton deleteButton;
+    private JTextField loginField;
+    private JPasswordField passwordField;
+    private JTextField nameField;
+    private JButton copyLoginButton;
+    private JButton copyPasswordButton;
+    private JButton showPasswordButton;
+    private JButton searchButton;
+    private JLabel databaseLabel;
+    private JComboBox<String> categoryComboBox;
+    private JButton switchDatabaseButton;
+    private JTextField emailField;
+    private JButton copyEmailButton;
+    private JTextField websiteField;
+    private JButton openButton;
+    private App app;
+    private DefaultListModel<Database.IdWith<String>> credentialListModel;
+    private DefaultComboBoxModel<String> categoryComboModel;
+    private UiState uiState;
+
+    public SwingUserInterface(App app) {
+        credentialListModel = new DefaultListModel<>();
+        categoryComboModel = new DefaultComboBoxModel<>();
+
         addButton.addActionListener((e) -> {
-            app.handle(App.Event.ADD_CREDENTIAL);
+            setUiState(UiState.CREATE_CREDENTIAL);
         });
 
         editButton.addActionListener((e) -> {
@@ -38,7 +55,7 @@ public class MainWindow {
         });
 
         credentialInfoList.addListSelectionListener((e) -> {
-            if (!e.getValueIsAdjusting()) {
+            if (!e.getValueIsAdjusting() && credentialInfoList.getSelectedIndex() != -1) {
                 app.handle(App.Event.SELECT_CREDENTIAL);
             }
         });
@@ -48,23 +65,41 @@ public class MainWindow {
         });
 
         copyPasswordButton.addActionListener((e) -> {
-            app.handle(App.Event.COPY_GENERATE_PASSWORD);
+            if (uiState == UiState.CREATE_CREDENTIAL || uiState == UiState.EDIT_CREDENTIAL) {
+                copyToClipboard(new String(passwordField.getPassword()));
+            } else {
+                app.handle(App.Event.GENERATE_PASSWORD);
+            }
         });
 
         copyLoginButton.addActionListener((e) -> {
-            app.handle(App.Event.COPY_LOGIN);
+            copyToClipboard(loginField.getText());
         });
 
         copyEmailButton.addActionListener((e) -> {
-            app.handle(App.Event.COPY_EMAIL);
+            copyToClipboard(emailField.getText());
         });
 
         showPasswordButton.addActionListener((e) -> {
-            app.handle(App.Event.SHOW_HIDE_PASSWORD);
+            if (showPasswordButton.getText().equals("Show")) {
+                showPasswordButton.setText("Hide");
+                passwordField.setEchoChar((char) 0);
+            } else {
+                showPasswordButton.setText("Show");
+                passwordField.setEchoChar('•');
+            }
         });
 
         openButton.addActionListener((e) -> {
-            app.handle(App.Event.OPEN_WEBSITE);
+            String website = websiteField.getText();
+
+            if (!website.isEmpty()) {
+                try {
+                    Desktop.getDesktop().browse(URI.create(website));
+                } catch (IOException ioException) {
+                    showMessage("Failed to open web browser");
+                }
+            }
         });
 
         searchButton.addActionListener((e) -> {
@@ -81,6 +116,350 @@ public class MainWindow {
                 return super.getListCellRendererComponent(list, ((Database.IdWith<String>) value).value, index, isSelected, cellHasFocus);
             }
         });
+
+        JFrame frame = new JFrame("key-wallet");
+        frame.setContentPane($$$getRootComponent$$$());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
+        frame.setVisible(true);
+    }
+
+    @Override
+    public void setTheme(String theme) {
+        if (theme.equals("Dark")) {
+            try {
+                UIManager.setLookAndFeel(new FlatDarkLaf());
+                SwingUtilities.updateComponentTreeUI(mainPanel.getRootPane());
+            } catch (UnsupportedLookAndFeelException e) {
+                JOptionPane.showMessageDialog(mainPanel, e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(mainPanel, message);
+    }
+
+    @Override
+    public void showDbConnectionString(String uri) {
+        databaseLabel.setText("Database: " + uri);
+    }
+
+    @Override
+    public void showCredentials(List<Database.IdWith<String>> credentialNames, List<String> categories) {
+        credentialListModel = new DefaultListModel<>();
+        categoryComboModel = new DefaultComboBoxModel<>();
+        credentialListModel.addAll(credentialNames);
+        categoryComboModel.addAll(categories);
+        credentialInfoList.setModel(credentialListModel);
+        categoryComboBox.setModel(categoryComboModel);
+        credentialInfoList.setSelectedIndex(0);
+    }
+
+    @Override
+    public void showCredential(Credential credential) {
+        nameField.setText(credential.name);
+        loginField.setText(credential.login);
+        emailField.setText(credential.email);
+        passwordField.setText(credential.password);
+        websiteField.setText(credential.website);
+        categoryComboBox.setSelectedItem(credential.category);
+    }
+
+    @Override
+    public void addCredential(Database.IdWith<String> credentialName) {
+        credentialListModel.addElement(credentialName);
+        credentialInfoList.setSelectedIndex(credentialListModel.getSize() - 1);
+    }
+
+    @Override
+    public void updateCredential(Database.IdWith<String> credentialName) {
+        credentialListModel.set(credentialInfoList.getSelectedIndex(), credentialName);
+    }
+
+    @Override
+    public void removeSelectedCredential() {
+        int idx = credentialInfoList.getSelectedIndex();
+        credentialListModel.remove(idx);
+
+        if (credentialListModel.getSize() > 0) {
+            credentialInfoList.setSelectedIndex(max(idx - 1, 0));
+
+            setUiState(UiState.DISPLAY_CREDENTIAL);
+        } else {
+            setUiState(UiState.NO_CREDENTIALS);
+        }
+    }
+
+    @Override
+    public void setGeneratedPassword(String password) {
+        passwordField.setText(password);
+    }
+
+    @Override
+    public Credential getCredentialInput() {
+        Credential c = new Credential(
+                nameField.getText(),
+                loginField.getText(),
+                emailField.getText(),
+                new String(passwordField.getPassword()),
+                websiteField.getText(),
+                (String) categoryComboBox.getSelectedItem()
+        );
+
+        if (categoryComboModel.getIndexOf(c.category) == -1) {
+            categoryComboModel.addElement(c.category);
+        }
+
+        return c;
+    }
+
+    @Override
+    public int getSelectedCredentialId() {
+        int index = credentialInfoList.getSelectedIndex();
+        if (index == -1) return -1;
+        return credentialListModel.get(index).id;
+    }
+
+    @Override
+    public String loadMasterPassword() {
+        JPasswordField passwordField = new JPasswordField(10);
+        int choice = JOptionPane.showConfirmDialog(
+                mainPanel,
+                passwordField,
+                "Enter Master Password",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (choice == JOptionPane.OK_OPTION) {
+            return new String(passwordField.getPassword());
+        } else {
+            return "";
+        }
+    }
+
+    @Override
+    public String loadUiTheme() {
+        String[] themeOptions = new String[]{"Light", "Dark"};
+
+        int themeChoice = JOptionPane.showOptionDialog(
+                mainPanel,
+                "Choose ui theme",
+                "Ui Theme Selection",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                themeOptions,
+                themeOptions[0]
+        );
+
+        return themeOptions[themeChoice];
+    }
+
+    @Override
+    public String loadDbConnectionUri() {
+        String[] databaseOptions = new String[]{"Create new", "Choose existing", "Connect to remote"};
+
+        int databaseChoice = JOptionPane.showOptionDialog(
+                mainPanel,
+                "Choose application database",
+                "Database Setup",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                databaseOptions,
+                databaseOptions[0]
+        );
+
+        if (databaseChoice == 0) {
+            return LocalDatabase.DEFAULT_URI;
+        } else if (databaseChoice == 1) {
+            JFileChooser fileChooser = new JFileChooser("./");
+            int fileChooserResult = fileChooser.showOpenDialog(mainPanel);
+
+            if (fileChooserResult == JFileChooser.APPROVE_OPTION) {
+                File databaseFile = fileChooser.getSelectedFile();
+                return LocalDatabase.LOCATOR + databaseFile.getAbsolutePath();
+            } else {
+                return loadDbConnectionUri();
+            }
+        } else {
+            // TODO: add new dialog
+            return SqliteDatabase.DEFAULT_URI;
+        }
+    }
+
+    @Override
+    public void setUiState(UiState state) {
+        uiState = state;
+        update();
+    }
+
+    @Override
+    public UiState getUiState() {
+        return uiState;
+    }
+
+    private void copyToClipboard(String value) {
+        StringSelection selection = new StringSelection(value);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, null);
+
+        showMessage("Copied to clipboard");
+    }
+
+    private void update() {
+        switch (uiState) {
+            case DISABLED -> {
+                searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
+                credentialInfoList.setEnabled(false);
+                addButton.setEnabled(false);
+                editButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+                nameField.setEnabled(false);
+                loginField.setEnabled(false);
+                emailField.setEnabled(false);
+                passwordField.setEnabled(false);
+                websiteField.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
+                copyPasswordButton.setEnabled(false);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                switchDatabaseButton.setEnabled(false);
+            }
+            case NO_CREDENTIALS -> {
+                searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
+                credentialInfoList.setEnabled(false);
+                addButton.setEnabled(true);
+                editButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+                nameField.setEnabled(false);
+                loginField.setEnabled(false);
+                emailField.setEnabled(false);
+                passwordField.setEnabled(false);
+                websiteField.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
+                copyPasswordButton.setEnabled(false);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                switchDatabaseButton.setEnabled(true);
+
+                nameField.setText("");
+                loginField.setText("");
+                emailField.setText("");
+                passwordField.setText("");
+                websiteField.setText("");
+                categoryComboBox.setSelectedItem("");
+
+                addButton.requestFocus();
+            }
+            case CREATE_CREDENTIAL -> {
+                searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
+                credentialInfoList.setEnabled(false);
+                addButton.setEnabled(false);
+                editButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+                nameField.setEnabled(true);
+                loginField.setEnabled(true);
+                emailField.setEnabled(true);
+                passwordField.setEnabled(true);
+                websiteField.setEnabled(true);
+                categoryComboBox.setEnabled(true);
+                copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
+                copyPasswordButton.setEnabled(true);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
+                categoryComboBox.setEnabled(true);
+                switchDatabaseButton.setEnabled(false);
+
+                nameField.setText("");
+                loginField.setText("");
+                emailField.setText("");
+                passwordField.setText("");
+                websiteField.setText("");
+                categoryComboBox.setSelectedItem("");
+                passwordField.setEchoChar((char) 0);
+
+                editButton.setText("Create");
+                deleteButton.setText("Cancel");
+                copyPasswordButton.setText("Generate");
+                showPasswordButton.setText("Show");
+
+                nameField.requestFocus();
+            }
+            case DISPLAY_CREDENTIAL -> {
+                searchTextField.setEnabled(true);
+                searchButton.setEnabled(true);
+                credentialInfoList.setEnabled(true);
+                addButton.setEnabled(true);
+                editButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+                nameField.setEnabled(false);
+                loginField.setEnabled(false);
+                emailField.setEnabled(false);
+                passwordField.setEnabled(false);
+                websiteField.setEnabled(false);
+                categoryComboBox.setEnabled(false);
+                copyLoginButton.setEnabled(true);
+                copyEmailButton.setEnabled(true);
+                copyPasswordButton.setEnabled(true);
+                showPasswordButton.setEnabled(true);
+                openButton.setEnabled(true);
+                categoryComboBox.setEnabled(false);
+                switchDatabaseButton.setEnabled(true);
+
+                passwordField.setEchoChar('•');
+
+                editButton.setText("Edit");
+                deleteButton.setText("Delete");
+                copyPasswordButton.setText("Copy");
+                showPasswordButton.setText("Show");
+
+                credentialInfoList.requestFocus();
+            }
+            case EDIT_CREDENTIAL -> {
+                searchTextField.setEnabled(false);
+                searchButton.setEnabled(false);
+                credentialInfoList.setEnabled(false);
+                addButton.setEnabled(false);
+                editButton.setEnabled(true);
+                deleteButton.setEnabled(true);
+                nameField.setEnabled(true);
+                loginField.setEnabled(true);
+                emailField.setEnabled(true);
+                passwordField.setEnabled(true);
+                websiteField.setEnabled(true);
+                categoryComboBox.setEnabled(true);
+                copyLoginButton.setEnabled(false);
+                copyEmailButton.setEnabled(false);
+                copyPasswordButton.setEnabled(true);
+                showPasswordButton.setEnabled(false);
+                openButton.setEnabled(false);
+                categoryComboBox.setEnabled(true);
+                switchDatabaseButton.setEnabled(false);
+
+                passwordField.setEchoChar((char) 0);
+
+                editButton.setText("Save");
+                deleteButton.setText("Discard");
+                copyPasswordButton.setText("Generate");
+                showPasswordButton.setText("Show");
+
+                nameField.requestFocus();
+            }
+        }
     }
 
     {
