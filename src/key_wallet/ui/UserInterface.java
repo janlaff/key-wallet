@@ -29,5 +29,4 @@ public interface UserInterface {
     String loadUiTheme();
     String loadDbConnectionUri();
     void setUiState(UiState state);
-    UiState getUiState();
 }

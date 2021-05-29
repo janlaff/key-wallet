@@ -303,11 +303,6 @@ public class SwingUserInterface implements UserInterface {
         update();
     }
 
-    @Override
-    public UiState getUiState() {
-        return uiState;
-    }
-
     private void copyToClipboard(String value) {
         StringSelection selection = new StringSelection(value);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

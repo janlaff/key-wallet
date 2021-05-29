@@ -4,7 +4,6 @@ import key_wallet.core.*;
 import key_wallet.crypto.AESEncryption;
 import key_wallet.data.Credential;
 
-import java.awt.*;
 import java.util.List;
 
 public class App {
