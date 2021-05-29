@@ -37,7 +37,6 @@ public class SwingUserInterface implements UserInterface {
     private JButton copyEmailButton;
     private JTextField websiteField;
     private JButton openButton;
-    private App app;
     private DefaultListModel<Database.IdWith<String>> credentialListModel;
     private DefaultComboBoxModel<String> categoryComboModel;
     private UiState uiState;
@@ -51,24 +50,32 @@ public class SwingUserInterface implements UserInterface {
         });
 
         editButton.addActionListener((e) -> {
-            app.handle(App.Event.EDIT_CREATE_SAVE_CREDENTIAL);
+            switch (uiState) {
+                case EDIT_CREDENTIAL -> app.updateCredential(getSelectedCredentialId(), getCredentialInput());
+                case CREATE_CREDENTIAL -> app.createCredential(getCredentialInput());
+                case DISPLAY_CREDENTIAL -> setUiState(UiState.EDIT_CREDENTIAL);
+            }
         });
 
         credentialInfoList.addListSelectionListener((e) -> {
             if (!e.getValueIsAdjusting() && credentialInfoList.getSelectedIndex() != -1) {
-                app.handle(App.Event.SELECT_CREDENTIAL);
+                app.selectCredential();
             }
         });
 
         deleteButton.addActionListener((e) -> {
-            app.handle(App.Event.DELETE_DISCARD_CREDENTIAL);
+            switch (uiState) {
+                case EDIT_CREDENTIAL -> app.discardCredential();
+                case CREATE_CREDENTIAL -> app.discardCredential();
+                case DISPLAY_CREDENTIAL -> app.deleteCredential();
+            }
         });
 
         copyPasswordButton.addActionListener((e) -> {
             if (uiState == UiState.CREATE_CREDENTIAL || uiState == UiState.EDIT_CREDENTIAL) {
                 copyToClipboard(new String(passwordField.getPassword()));
             } else {
-                app.handle(App.Event.GENERATE_PASSWORD);
+                app.generatePassword();
             }
         });
 
@@ -103,11 +110,10 @@ public class SwingUserInterface implements UserInterface {
         });
 
         searchButton.addActionListener((e) -> {
-            app.handle(App.Event.FILTER_CREDENTIALS);
         });
 
         switchDatabaseButton.addActionListener((e) -> {
-            app.handle(App.Event.SWITCH_DATABASE);
+            app.switchDatabase();
         });
 
         credentialInfoList.setCellRenderer(new DefaultListCellRenderer() {
