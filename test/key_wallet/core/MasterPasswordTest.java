@@ -1,15 +1,36 @@
 package key_wallet.core;
 
-import key_wallet.crypto.PlaintextEncryption;
+import key_wallet.crypto.Encryption;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 public class MasterPasswordTest {
+    private Encryption encryptionMock;
+
+    @Before
+    public void setUp() {
+        encryptionMock = Mockito.mock(Encryption.class);
+        // Mock encrypt method
+        when(encryptionMock.encrypt(any(byte[].class), any(byte[].class)))
+                .thenAnswer((Answer<byte[]>) invocationOnMock -> invocationOnMock.getArgument(0));
+        // Mock decrypt method
+        when(encryptionMock.decrypt(any(byte[].class), any(byte[].class)))
+                .thenAnswer((Answer<byte[]>) invocationOnMock -> invocationOnMock.getArgument(0));
+    }
+
     @Test
     public void encryptAndDecryptData() throws MasterPasswordException {
-        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", new PlaintextEncryption());
+        MasterPassword mp = new MasterPassword("1chtrinkenurBIER", encryptionMock);
         String randomData = "Fischers Fritz";
         byte[] encryptedData = mp.encrypt(randomData.getBytes(StandardCharsets.UTF_8));
         String result = new String(mp.decrypt(encryptedData), StandardCharsets.UTF_8);
@@ -20,27 +41,27 @@ public class MasterPasswordTest {
 
     @Test(expected = MasterPasswordException.class)
     public void exceptionWhenEmpty() throws MasterPasswordException {
-        new MasterPassword("", new PlaintextEncryption());
+        new MasterPassword("", encryptionMock);
     }
 
     @Test(expected = MasterPasswordException.class)
     public void exceptionWhenTooShort() throws MasterPasswordException {
-        new MasterPassword("Ab124", new PlaintextEncryption());
+        new MasterPassword("Ab124", encryptionMock);
     }
 
     @Test(expected = MasterPasswordException.class)
     public void exceptionOnOnlyNumbers() throws MasterPasswordException {
-        new MasterPassword("12345678", new PlaintextEncryption());
+        new MasterPassword("12345678", encryptionMock);
     }
 
     @Test(expected = MasterPasswordException.class)
     public void exceptionOnOnlyLetters() throws MasterPasswordException {
-        new MasterPassword("ABCDEFG", new PlaintextEncryption());
+        new MasterPassword("ABCDEFG", encryptionMock);
     }
 
     @Test(expected = MasterPasswordException.class)
     public void exceptionOnOnlySymbols() throws MasterPasswordException {
-        new MasterPassword("!§$%&/()=", new PlaintextEncryption());
+        new MasterPassword("!§$%&/()=", encryptionMock);
     }
 
     @Test
@@ -60,7 +81,7 @@ public class MasterPasswordTest {
         };
 
         for (String pw : goodPasswords) {
-            new MasterPassword(pw, new PlaintextEncryption());
+            new MasterPassword(pw, encryptionMock);
         }
     }
 }
